@@ -39,11 +39,9 @@ struct WelcomeView: View {
             NavigationLink("Start Scanning") {
                 RoomCaptureScanView()
             }
-            .padding()
-            .background(Color("AccentColor"))
-            .foregroundColor(.white)
-            .clipShape(Capsule())
-            .fontWeight(.bold)
+            .buttonStyle(.glass)
+            .controlSize(.large)
+            .tint(Color("AccentColor"))
 
             // Sheet is triggered when choosing Floor Plan
             .sheet(isPresented: $navigateToPlan) {
@@ -62,6 +60,9 @@ struct WelcomeView: View {
             } label: {
                 Text("Import Scan")
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(Color("AccentColor"))
             .padding(.top, 8)
             .fileImporter(
                 isPresented: $isImporting,
@@ -85,6 +86,8 @@ struct WelcomeView: View {
             } label: {
                 Text("Import USDZ")
             }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
             .padding(.top, 8)
             .fileImporter(
                 isPresented: $isImportingUSDZ,

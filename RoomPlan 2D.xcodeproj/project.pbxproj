@@ -10,6 +10,8 @@
 		003713772E7AF3AC00153E96 /* USDZQuickLookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003713762E7AF3AC00153E96 /* USDZQuickLookView.swift */; };
 		008BA7D22E7AF8B800956D2D /* FloorPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D12E7AF8B800956D2D /* FloorPlanView.swift */; };
 		008BA7D62E7AF90E00956D2D /* USDZQuickLookSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D52E7AF90E00956D2D /* USDZQuickLookSheet.swift */; };
+		008BA7D82E7AFD5800956D2D /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D72E7AFD5800956D2D /* RootTabView.swift */; };
+		008BA7DA2E7AFD7000956D2D /* ExploreProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */; };
 		95360D0029A8DC8700BDBED0 /* RoomPlan_2DApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */; };
 		95360D0229A8DC8700BDBED0 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360D0129A8DC8700BDBED0 /* WelcomeView.swift */; };
 		95360D0429A8DC8800BDBED0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 95360D0329A8DC8800BDBED0 /* Assets.xcassets */; };
@@ -30,6 +32,8 @@
 		003713762E7AF3AC00153E96 /* USDZQuickLookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USDZQuickLookView.swift; sourceTree = "<group>"; };
 		008BA7D12E7AF8B800956D2D /* FloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorPlanView.swift; sourceTree = "<group>"; };
 		008BA7D52E7AF90E00956D2D /* USDZQuickLookSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USDZQuickLookSheet.swift; sourceTree = "<group>"; };
+		008BA7D72E7AFD5800956D2D /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreProjectsView.swift; sourceTree = "<group>"; };
 		95360CFC29A8DC8700BDBED0 /* RoomPlan 2D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RoomPlan 2D.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPlan_2DApp.swift; sourceTree = "<group>"; };
 		95360D0129A8DC8700BDBED0 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
@@ -86,6 +90,8 @@
 		95360CFE29A8DC8700BDBED0 /* RoomPlan 2D */ = {
 			isa = PBXGroup;
 			children = (
+				008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */,
+				008BA7D72E7AFD5800956D2D /* RootTabView.swift */,
 				0037136D2E7ADE9700153E96 /* RoomPlan 2D.entitlements */,
 				95360D1329A8E84400BDBED0 /* RoomPlan-2D-Info.plist */,
 				95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */,
@@ -202,12 +208,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				953FDAE429BAA1D900A7AACF /* simd_float4x4+EulerAnglesAndPosition.swift in Sources */,
+				008BA7D82E7AFD5800956D2D /* RootTabView.swift in Sources */,
 				953FDAEA29BE251B00A7AACF /* DrawParameters.swift in Sources */,
 				95360D0E29A8E14500BDBED0 /* RoomCaptureModel.swift in Sources */,
 				95360D0229A8DC8700BDBED0 /* WelcomeView.swift in Sources */,
 				953FDAE229BAA0BD00A7AACF /* FloorPlanScene.swift in Sources */,
 				953FDAE629BB8F3E00A7AACF /* CGPoint+RotateAround.swift in Sources */,
 				95360D1029A8E59600BDBED0 /* RoomCaptureRepresentable.swift in Sources */,
+				008BA7DA2E7AFD7000956D2D /* ExploreProjectsView.swift in Sources */,
 				953FDAEC29BE2D9500A7AACF /* FloorPlanObject.swift in Sources */,
 				008BA7D62E7AF90E00956D2D /* USDZQuickLookSheet.swift in Sources */,
 				95360D0029A8DC8700BDBED0 /* RoomPlan_2DApp.swift in Sources */,
