@@ -134,7 +134,7 @@ struct RootTabView: View {
                     NavigationStack {
                         exploreDetail
                             .navigationTitle(sidebarSelection == .favorites ? "Favoris" : "Explorer les projets")
-                            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+                            .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                             .toolbarBackground(.visible, for: .navigationBar)
                             .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
                     }
@@ -144,7 +144,7 @@ struct RootTabView: View {
                 NavigationStack {
                     ExploreProjectsView(projects: filteredProjects)
                         .navigationTitle("Explorer les projets")
-                        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+                        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                         .toolbarBackground(.visible, for: .navigationBar)
                         .toolbar {
                             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -168,8 +168,10 @@ struct RootTabView: View {
     private var newContainer: some View {
         NavigationStack {
             WelcomeView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color("BackgroundColor").ignoresSafeArea())
                 .navigationTitle("Nouveau projet")
-                .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+                .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                 .toolbarBackground(.visible, for: .navigationBar)
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -235,6 +237,8 @@ private struct SearchPresentationModifier: ViewModifier {
                                     placement: .navigationBarDrawer(displayMode: .automatic),
                                     prompt: "Rechercher")
                         .autocorrectionDisabled()
+                        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+                        .toolbarBackground(.visible, for: .navigationBar)
                         .onChange(of: showsSearch) { _, newValue in
                             if newValue {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -256,6 +260,8 @@ private struct SearchPresentationModifier: ViewModifier {
                                     placement: .navigationBarDrawer(displayMode: .automatic),
                                     prompt: "Rechercher")
                         .autocorrectionDisabled()
+                        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+                        .toolbarBackground(.visible, for: .navigationBar)
                         .focused($searchFocused)
                 } else {
                     content
