@@ -44,6 +44,8 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Réglages")
+            .scrollContentBackground(.hidden)
+            .background(Color("BackgroundColor").ignoresSafeArea())
             .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }

@@ -197,11 +197,11 @@ struct RootTabView: View {
     private var settingsContainer: some View {
         NavigationStack {
             SettingsView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationTitle("Réglages")
                 .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                 .toolbarBackground(.visible, for: .navigationBar)
         }
-        .background(Color("BackgroundColor").ignoresSafeArea())
     }
 
     // MARK: - Helpers
