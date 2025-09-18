@@ -13,5 +13,13 @@ struct RoomPlan_2DApp: App {
         WindowGroup {
             RootTabView()
         }
+        // Window for individual project
+        WindowGroup("Project", for: UUID.self) { $projectId in
+            if let id = projectId, let project = ProjectController.shared.project(withId: id) {
+                ProjectWindowView(project: project)
+            } else {
+                Text("Projet introuvable")
+            }
+        }
     }
 }

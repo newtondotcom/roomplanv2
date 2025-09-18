@@ -112,6 +112,11 @@ struct RootTabView: View {
                                     } label: {
                                         Image(systemName: "magnifyingglass")
                                     }
+                                    Button {
+                                        // Placeholder: ajouter un projet
+                                    } label: {
+                                        Image(systemName: "plus.circle")
+                                    }
                                 }
                             }
                     } else {
@@ -130,6 +135,11 @@ struct RootTabView: View {
                                         // Placeholder: rechercher
                                     } label: {
                                         Image(systemName: "magnifyingglass")
+                                    }
+                                    Button {
+                                        // Placeholder: ajouter un projet
+                                    } label: {
+                                        Image(systemName: "plus.circle")
                                     }
                                 }
                             }
@@ -160,6 +170,11 @@ struct RootTabView: View {
                                     // Placeholder: rechercher
                                 } label: {
                                     Image(systemName: "magnifyingglass")
+                                }
+                                Button {
+                                    // Placeholder: ajouter un projet
+                                } label: {
+                                    Image(systemName: "plus.circle")
                                 }
                             }
                         }
