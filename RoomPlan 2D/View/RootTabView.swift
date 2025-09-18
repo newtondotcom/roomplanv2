@@ -10,6 +10,9 @@ import SwiftUI
 struct RootTabView: View {
     @State private var selection: Tab = .explore
     @State private var sidebarSelection: SidebarItem? = .projects
+    @State private var searchText: String = ""
+    @State private var showsSearch: Bool = false
+    @FocusState private var searchFocused: Bool
 
     enum Tab: Hashable {
         case explore
@@ -71,9 +74,10 @@ struct RootTabView: View {
         Group {
             switch sidebarSelection {
             case .projects, .none:
-                ExploreProjectsView()
+                ExploreProjectsView(projects: filteredProjects)
             case .favorites:
-                ExploreProjectsView()
+                // For now, same view; you can change filtering logic to favorites later.
+                ExploreProjectsView(projects: filteredProjects)
             }
         }
         .toolbar {
@@ -108,14 +112,10 @@ struct RootTabView: View {
                                         Image(systemName: "line.3.horizontal.decrease.circle")
                                     }
                                     Button {
-                                        // Placeholder: rechercher
+                                        // Trigger search presentation
+                                        toggleSearch()
                                     } label: {
                                         Image(systemName: "magnifyingglass")
-                                    }
-                                    Button {
-                                        // Placeholder: ajouter un projet
-                                    } label: {
-                                        Image(systemName: "plus.circle")
                                     }
                                 }
                             }
@@ -132,14 +132,10 @@ struct RootTabView: View {
                                         Image(systemName: "line.3.horizontal.decrease.circle")
                                     }
                                     Button {
-                                        // Placeholder: rechercher
+                                        // Trigger search presentation
+                                        toggleSearch()
                                     } label: {
                                         Image(systemName: "magnifyingglass")
-                                    }
-                                    Button {
-                                        // Placeholder: ajouter un projet
-                                    } label: {
-                                        Image(systemName: "plus.circle")
                                     }
                                 }
                             }
@@ -151,11 +147,13 @@ struct RootTabView: View {
                             .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
                             .toolbarBackground(.visible, for: .navigationBar)
                     }
+                    // Native liquid-glass search UI; presented when the toolbar search button is tapped
+                    .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
                 }
                 .navigationSplitViewStyle(.balanced)
             } else {
                 NavigationStack {
-                    ExploreProjectsView()
+                    ExploreProjectsView(projects: filteredProjects)
                         .navigationTitle("Explorer les projets")
                         .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
                         .toolbarBackground(.visible, for: .navigationBar)
@@ -167,18 +165,16 @@ struct RootTabView: View {
                                     Image(systemName: "line.3.horizontal.decrease.circle")
                                 }
                                 Button {
-                                    // Placeholder: rechercher
+                                    // Trigger search presentation
+                                    toggleSearch()
                                 } label: {
                                     Image(systemName: "magnifyingglass")
-                                }
-                                Button {
-                                    // Placeholder: ajouter un projet
-                                } label: {
-                                    Image(systemName: "plus.circle")
                                 }
                             }
                         }
                 }
+                // Native liquid-glass search UI; presented when the toolbar search button is tapped
+                .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
             }
         }
     }
@@ -214,5 +210,82 @@ struct RootTabView: View {
         // iPad split view; iPhone fallback
         return UIDevice.current.userInterfaceIdiom == .pad
         #endif
+    }
+
+    // Filter logic for projects by name; you can expand to include rooms, dates, etc.
+    private var filteredProjects: [Project] {
+        let all = ProjectController.shared.projects
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return all }
+        return all.filter { project in
+            project.name.localizedCaseInsensitiveContains(trimmed)
+        }
+    }
+
+    private func toggleSearch() {
+        withAnimation(.snappy) {
+            showsSearch.toggle()
+        }
+        // Focus the search field when presented
+        if showsSearch {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                searchFocused = true
+            }
+        }
+    }
+}
+
+// MARK: - Search presentation helper
+
+private struct SearchPresentationModifier: ViewModifier {
+    @Binding var searchText: String
+    @Binding var showsSearch: Bool
+    @FocusState var searchFocused: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content
+                .searchable(text: $searchText,
+                            isPresented: $showsSearch,
+                            placement: .navigationBarDrawer(displayMode: .automatic),
+                            prompt: "Rechercher")
+                .autocorrectionDisabled()
+                .onChange(of: showsSearch) { _, newValue in
+                    if newValue {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            searchFocused = true
+                        }
+                    }
+                }
+                .focused($searchFocused)
+        } else {
+            // iOS 16 fallback: no isPresented parameter; approximate by showing even when hidden,
+            // and clearing/focusing when toggled on.
+            if #available(iOS 17.0, *) {
+                content
+                    .searchable(text: $searchText,
+                                placement: .navigationBarDrawer(displayMode: .automatic),
+                                prompt: "Rechercher")
+                    .autocorrectionDisabled()
+                    .onChange(of: showsSearch) { _, newValue in
+                        if newValue {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                searchFocused = true
+                            }
+                        } else {
+                            // Clear search when hiding to emulate dismissal
+                            searchText = ""
+                        }
+                    }
+                    .focused($searchFocused)
+            } else {
+                content
+                    .searchable(text: $searchText,
+                                placement: .navigationBarDrawer(displayMode: .automatic),
+                                prompt: "Rechercher")
+                    .autocorrectionDisabled()
+                    .focused($searchFocused)
+            }
+        }
     }
 }

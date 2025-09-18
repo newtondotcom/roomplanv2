@@ -11,12 +11,19 @@ import Foundation
 struct ExploreProjectsView: View {
     @StateObject private var controller = ProjectController.shared
 
+    // Optional external data source to allow parent to inject filtered results
+    var projects: [Project]?
+
     @State private var newProjectName = ""
     @Environment(\.openWindow) private var openWindow
 
+    private var effectiveProjects: [Project] {
+        projects ?? controller.projects
+    }
+
     var body: some View {
         Group {
-            if controller.projects.isEmpty {
+            if effectiveProjects.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "square.grid.2x2")
                         .font(.largeTitle)
@@ -27,7 +34,7 @@ struct ExploreProjectsView: View {
                 }
             } else {
                 List {
-                    ForEach(controller.projects) { project in
+                    ForEach(effectiveProjects) { project in
                         Button {
                             openWindow(value: project.id)
                         } label: {
@@ -45,7 +52,6 @@ struct ExploreProjectsView: View {
                             }
                         }
                     }
-                    .onDelete(perform: controller.deleteProjects)
                 }
                 .listStyle(.insetGrouped)
             }
@@ -54,5 +60,4 @@ struct ExploreProjectsView: View {
         .background(Color("BackgroundColor").ignoresSafeArea())
     }
 }
-
 
