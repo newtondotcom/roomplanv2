@@ -52,6 +52,7 @@ struct ExploreProjectsView: View {
                             }
                         }
                     }
+                    .onDelete(perform: controller.deleteProjects)
                 }
                 .listStyle(.insetGrouped)
             }
