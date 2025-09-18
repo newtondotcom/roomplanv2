@@ -12,7 +12,10 @@ final class ProjectController: ObservableObject {
     static let shared = ProjectController()
 
     @Published private(set) var projects: [Project] = [] {
-        didSet { persist() }
+        didSet {
+            print("[ProjectController] Projects updated. Count=\(projects.count)")
+            persist()
+        }
     }
 
     private let fileURL: URL
@@ -30,12 +33,14 @@ final class ProjectController: ObservableObject {
     }
 
     func addProject(name: String) {
-        var new = Project(name: name)
+        let new = Project(name: name)
+        print("[ProjectController] Adding project: \(new.name) (id=\(new.id))")
         projects.append(new)
     }
 
     func addProject(name: String, rooms: [ProjectRoom], isScannedByApp: Bool) {
         let project = Project(name: name, rooms: rooms, isScannedByApp: isScannedByApp)
+        print("[ProjectController] Adding project: \(project.name) rooms=\(rooms.count) scanned=\(isScannedByApp) (id=\(project.id))")
         projects.append(project)
     }
 
@@ -53,10 +58,19 @@ final class ProjectController: ObservableObject {
     }
 
     // MARK: - Persistence
+    func reload() {
+        load()
+    }
+
     private func load() {
         guard let data = try? Data(contentsOf: fileURL) else { return }
-        if let decoded = try? JSONDecoder().decode([Project].self, from: data) {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        if let decoded = try? decoder.decode([Project].self, from: data) {
             projects = decoded
+            print("[ProjectController] Loaded persisted projects: \(projects.count)")
+        } else {
+            print("[ProjectController] Failed to decode persisted projects at \(fileURL.path)")
         }
     }
 
@@ -64,7 +78,12 @@ final class ProjectController: ObservableObject {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         if let data = try? encoder.encode(projects) {
-            try? data.write(to: fileURL, options: [.atomic])
+            do {
+                try data.write(to: fileURL, options: [.atomic])
+                print("[ProjectController] Persisted projects to \(fileURL.path)")
+            } catch {
+                print("[ProjectController] Failed to persist: \(error)")
+            }
         }
     }
 }

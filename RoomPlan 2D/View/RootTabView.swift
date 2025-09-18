@@ -81,10 +81,10 @@ struct RootTabView: View {
         Group {
             switch sidebarSelection {
             case .projects, .none:
-                ExploreProjectsView(projects: filteredProjects)
+                ExploreProjectsView()
             case .favorites:
                 // For now, same view; you can change filtering logic to favorites later.
-                ExploreProjectsView(projects: filteredProjects)
+                ExploreProjectsView()
             }
         }
         .toolbar {
@@ -149,7 +149,7 @@ struct RootTabView: View {
                 .navigationSplitViewStyle(.balanced)
             } else {
                 NavigationStack {
-                    ExploreProjectsView(projects: filteredProjects)
+                    ExploreProjectsView()
                         .navigationTitle("Explorer les projets")
                         .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                         .toolbarBackground(.visible, for: .navigationBar)

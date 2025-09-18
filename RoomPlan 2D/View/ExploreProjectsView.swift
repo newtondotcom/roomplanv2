@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 struct ExploreProjectsView: View {
-    @StateObject private var controller = ProjectController.shared
+    @ObservedObject private var controller = ProjectController.shared
 
     // Optional external data source to allow parent to inject filtered results
     var projects: [Project]?
@@ -112,6 +112,9 @@ struct ExploreProjectsView: View {
                     Label("Filtrer", systemImage: "line.3.horizontal.decrease.circle")
                 }
             }
+        }
+        .refreshable {
+            ProjectController.shared.reload()
         }
     }
 }
