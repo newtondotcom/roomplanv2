@@ -36,23 +36,43 @@ struct WelcomeView: View {
             Spacer()
                 .frame(height: 50)
             
-            NavigationLink("Start Scanning") {
-                RoomCaptureScanView()
-            }
-            .buttonStyle(.glass)
-            .controlSize(.large)
-            .tint(Color("AccentColor"))
-
-            // Sheet is triggered when choosing Floor Plan
-            .sheet(isPresented: $navigateToPlan) {
-                if let importedRoom {
-                    FloorPlanView(capturedRoom: importedRoom)
+            if #available(iOS 26.0, *) {
+                NavigationLink("Start Scanning") {
+                    RoomCaptureScanView()
                 }
-            }
-
-            // Full screen cover for scanner option
-            .fullScreenCover(isPresented: $showScanner) {
-                RoomCaptureScanView()
+                .buttonStyle(.glass)
+                .controlSize(.large)
+                .tint(Color("AccentColor"))
+                
+                // Sheet is triggered when choosing Floor Plan
+                .sheet(isPresented: $navigateToPlan) {
+                    if let importedRoom {
+                        FloorPlanView(capturedRoom: importedRoom)
+                    }
+                }
+                
+                // Full screen cover for scanner option
+                .fullScreenCover(isPresented: $showScanner) {
+                    RoomCaptureScanView()
+                }
+            } else {
+                NavigationLink("Start Scanning") {
+                    RoomCaptureScanView()
+                }
+                .controlSize(.large)
+                .tint(Color("AccentColor"))
+                
+                // Sheet is triggered when choosing Floor Plan
+                .sheet(isPresented: $navigateToPlan) {
+                    if let importedRoom {
+                        FloorPlanView(capturedRoom: importedRoom)
+                    }
+                }
+                
+                // Full screen cover for scanner option
+                .fullScreenCover(isPresented: $showScanner) {
+                    RoomCaptureScanView()
+                }
             }
 
             Button {
@@ -156,8 +176,8 @@ private func importCapturedRoom(from url: URL) {
         let capturedRoom = try JSONDecoder().decode(CapturedRoom.self, from: data)
 
         self.importedRoom = capturedRoom
-        // Ask user what to do next
-        self.showImportOptions = true
+        // Directly present the 2D floor plan after successful import
+        self.navigateToPlan = true
 
     } catch {
         self.errorMessage = "Impossible d’ouvrir le fichier : \(error)"
