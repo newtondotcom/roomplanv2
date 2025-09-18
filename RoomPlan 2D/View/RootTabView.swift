@@ -17,6 +17,7 @@ struct RootTabView: View {
     enum Tab: Hashable {
         case explore
         case new
+        case settings
     }
 
     enum SidebarItem: Hashable, Identifiable, CaseIterable {
@@ -54,6 +55,12 @@ struct RootTabView: View {
                     Label("Nouveau", systemImage: "plus.circle")
                 }
                 .tag(Tab.new)
+
+            settingsContainer
+                .tabItem {
+                    Label("Réglages", systemImage: "gearshape")
+                }
+                .tag(Tab.settings)
         }
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
@@ -185,6 +192,17 @@ struct RootTabView: View {
         }
     }
     #endif
+
+    // MARK: - Settings Tab
+    private var settingsContainer: some View {
+        NavigationStack {
+            SettingsView()
+                .navigationTitle("Réglages")
+                .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+        }
+        .background(Color("BackgroundColor").ignoresSafeArea())
+    }
 
     // MARK: - Helpers
 

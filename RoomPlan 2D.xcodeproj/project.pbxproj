@@ -18,6 +18,7 @@
 		00F2EF4D2E7C2BC800B96DC9 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF4C2E7C2BC400B96DC9 /* Project.swift */; };
 		00F2EF4F2E7C2C4400B96DC9 /* ProjectController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF4E2E7C2C4400B96DC9 /* ProjectController.swift */; };
 		00F2EF512E7C2C8100B96DC9 /* ProjectWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF502E7C2C8100B96DC9 /* ProjectWindowView.swift */; };
+		00F2EF532E7C378A00B96DC9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF522E7C378A00B96DC9 /* SettingsView.swift */; };
 		95360D0029A8DC8700BDBED0 /* RoomPlan_2DApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */; };
 		95360D0229A8DC8700BDBED0 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360D0129A8DC8700BDBED0 /* WelcomeView.swift */; };
 		95360D0429A8DC8800BDBED0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 95360D0329A8DC8800BDBED0 /* Assets.xcassets */; };
@@ -46,6 +47,7 @@
 		00F2EF4C2E7C2BC400B96DC9 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		00F2EF4E2E7C2C4400B96DC9 /* ProjectController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectController.swift; sourceTree = "<group>"; };
 		00F2EF502E7C2C8100B96DC9 /* ProjectWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectWindowView.swift; sourceTree = "<group>"; };
+		00F2EF522E7C378A00B96DC9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		95360CFC29A8DC8700BDBED0 /* RoomPlan 2D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RoomPlan 2D.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPlan_2DApp.swift; sourceTree = "<group>"; };
 		95360D0129A8DC8700BDBED0 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
@@ -88,6 +90,7 @@
 		00F2EF452E7C278700B96DC9 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				00F2EF522E7C378A00B96DC9 /* SettingsView.swift */,
 				00F2EF502E7C2C8100B96DC9 /* ProjectWindowView.swift */,
 				008BA7D72E7AFD5800956D2D /* RootTabView.swift */,
 				008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */,
@@ -250,6 +253,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				953FDAE429BAA1D900A7AACF /* simd_float4x4+EulerAnglesAndPosition.swift in Sources */,
+				00F2EF532E7C378A00B96DC9 /* SettingsView.swift in Sources */,
 				008BA7D82E7AFD5800956D2D /* RootTabView.swift in Sources */,
 				00F2EF4F2E7C2C4400B96DC9 /* ProjectController.swift in Sources */,
 				953FDAEA29BE251B00A7AACF /* DrawParameters.swift in Sources */,
