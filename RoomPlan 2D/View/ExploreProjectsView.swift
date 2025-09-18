@@ -17,8 +17,33 @@ struct ExploreProjectsView: View {
     @State private var newProjectName = ""
     @Environment(\.openWindow) private var openWindow
 
+    private enum SortOption: String, CaseIterable {
+        case dateAsc
+        case dateDesc
+        case roomsAsc
+        case roomsDesc
+    }
+
+    @State private var sortOption: SortOption = .dateDesc
+    // search handled by SearchPresentationModifier in RootTabView
+
     private var effectiveProjects: [Project] {
         projects ?? controller.projects
+    }
+
+    private var filteredProjects: [Project] { effectiveProjects }
+
+    private var sortedProjects: [Project] {
+        switch sortOption {
+        case .dateAsc:
+            return filteredProjects.sorted { $0.dateCreation < $1.dateCreation }
+        case .dateDesc:
+            return filteredProjects.sorted { $0.dateCreation > $1.dateCreation }
+        case .roomsAsc:
+            return filteredProjects.sorted { $0.rooms.count < $1.rooms.count }
+        case .roomsDesc:
+            return filteredProjects.sorted { $0.rooms.count > $1.rooms.count }
+        }
     }
 
     var body: some View {
@@ -34,7 +59,7 @@ struct ExploreProjectsView: View {
                 }
             } else {
                 List {
-                    ForEach(effectiveProjects) { project in
+                    ForEach(sortedProjects) { project in
                         Button {
                             openWindow(value: project.id)
                         } label: {
@@ -59,6 +84,35 @@ struct ExploreProjectsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("BackgroundColor").ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        sortOption = .dateAsc
+                    } label: {
+                        Label("Date ↑", systemImage: "calendar")
+                    }
+                    Button {
+                        sortOption = .dateDesc
+                    } label: {
+                        Label("Date ↓", systemImage: "calendar")
+                    }
+                    Divider()
+                    Button {
+                        sortOption = .roomsAsc
+                    } label: {
+                        Label("Pièces ↑", systemImage: "square.grid.2x2")
+                    }
+                    Button {
+                        sortOption = .roomsDesc
+                    } label: {
+                        Label("Pièces ↓", systemImage: "square.grid.2x2")
+                    }
+                } label: {
+                    Label("Filtrer", systemImage: "line.3.horizontal.decrease.circle")
+                }
+            }
+        }
     }
 }
 

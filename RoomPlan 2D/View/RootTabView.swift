@@ -107,11 +107,6 @@ struct RootTabView: View {
                             .toolbar {
                                 ToolbarItemGroup(placement: .primaryAction) {
                                     Button {
-                                        // Placeholder: filtrer
-                                    } label: {
-                                        Image(systemName: "line.3.horizontal.decrease.circle")
-                                    }
-                                    Button {
                                         // Trigger search presentation
                                         toggleSearch()
                                     } label: {
@@ -127,11 +122,6 @@ struct RootTabView: View {
                             .toolbar {
                                 ToolbarItemGroup(placement: .primaryAction) {
                                     Button {
-                                        // Placeholder: filtrer
-                                    } label: {
-                                        Image(systemName: "line.3.horizontal.decrease.circle")
-                                    }
-                                    Button {
                                         // Trigger search presentation
                                         toggleSearch()
                                     } label: {
@@ -146,9 +136,8 @@ struct RootTabView: View {
                             .navigationTitle(sidebarSelection == .favorites ? "Favoris" : "Explorer les projets")
                             .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
                             .toolbarBackground(.visible, for: .navigationBar)
+                            .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
                     }
-                    // Native liquid-glass search UI; presented when the toolbar search button is tapped
-                    .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
                 }
                 .navigationSplitViewStyle(.balanced)
             } else {
@@ -160,11 +149,6 @@ struct RootTabView: View {
                         .toolbar {
                             ToolbarItemGroup(placement: .topBarTrailing) {
                                 Button {
-                                    // Placeholder: filtrer
-                                } label: {
-                                    Image(systemName: "line.3.horizontal.decrease.circle")
-                                }
-                                Button {
                                     // Trigger search presentation
                                     toggleSearch()
                                 } label: {
@@ -172,9 +156,8 @@ struct RootTabView: View {
                                 }
                             }
                         }
+                        .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
                 }
-                // Native liquid-glass search UI; presented when the toolbar search button is tapped
-                .modifier(SearchPresentationModifier(searchText: $searchText, showsSearch: $showsSearch, searchFocused: _searchFocused))
             }
         }
     }
@@ -244,47 +227,39 @@ private struct SearchPresentationModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 17.0, *) {
-            content
-                .searchable(text: $searchText,
-                            isPresented: $showsSearch,
-                            placement: .navigationBarDrawer(displayMode: .automatic),
-                            prompt: "Rechercher")
-                .autocorrectionDisabled()
-                .onChange(of: showsSearch) { _, newValue in
-                    if newValue {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            searchFocused = true
-                        }
-                    }
-                }
-                .focused($searchFocused)
-        } else {
-            // iOS 16 fallback: no isPresented parameter; approximate by showing even when hidden,
-            // and clearing/focusing when toggled on.
-            if #available(iOS 17.0, *) {
-                content
-                    .searchable(text: $searchText,
-                                placement: .navigationBarDrawer(displayMode: .automatic),
-                                prompt: "Rechercher")
-                    .autocorrectionDisabled()
-                    .onChange(of: showsSearch) { _, newValue in
-                        if newValue {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                searchFocused = true
+            Group {
+                if showsSearch {
+                    content
+                        .searchable(text: $searchText,
+                                    isPresented: $showsSearch,
+                                    placement: .navigationBarDrawer(displayMode: .automatic),
+                                    prompt: "Rechercher")
+                        .autocorrectionDisabled()
+                        .onChange(of: showsSearch) { _, newValue in
+                            if newValue {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    searchFocused = true
+                                }
                             }
-                        } else {
-                            // Clear search when hiding to emulate dismissal
-                            searchText = ""
                         }
-                    }
-                    .focused($searchFocused)
-            } else {
-                content
-                    .searchable(text: $searchText,
-                                placement: .navigationBarDrawer(displayMode: .automatic),
-                                prompt: "Rechercher")
-                    .autocorrectionDisabled()
-                    .focused($searchFocused)
+                        .focused($searchFocused)
+                } else {
+                    content
+                }
+            }
+        } else {
+            // iOS 16 fallback: only apply when visible
+            Group {
+                if showsSearch {
+                    content
+                        .searchable(text: $searchText,
+                                    placement: .navigationBarDrawer(displayMode: .automatic),
+                                    prompt: "Rechercher")
+                        .autocorrectionDisabled()
+                        .focused($searchFocused)
+                } else {
+                    content
+                }
             }
         }
     }
