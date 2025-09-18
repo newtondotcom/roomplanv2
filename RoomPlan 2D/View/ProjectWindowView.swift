@@ -5,15 +5,6 @@
 //  Created by Robin Augereau on 18/09/2025.
 //
 
-
-//
-//  ProjectWindowView.swift
-//  RoomPlan 2D
-//
-//  Created by Robin Augereau on 18/09/2025.
-//
-
-
 import SwiftUI
 
 struct ProjectWindowView: View {
@@ -25,6 +16,9 @@ struct ProjectWindowView: View {
                 Section("Informations") {
                     Text(project.name)
                     Text(project.dateCreation, style: .date)
+                    // Convert Bool to string for display
+                    Text(project.isScannedByApp ? "Scanné par l'app" : "Non scanné par l'app")
+                    Text("\(project.hashValue)")
                 }
                 Section("Pièces") {
                     if project.rooms.isEmpty {
@@ -34,8 +28,12 @@ struct ProjectWindowView: View {
                         ForEach(project.rooms) { room in
                             VStack(alignment: .leading) {
                                 Text(room.name)
-                                if let json = room.fileURLJSON { Text(json.lastPathComponent).font(.caption).foregroundStyle(.secondary) }
-                                if let usdz = room.fileURLUSDZ { Text(usdz.lastPathComponent).font(.caption).foregroundStyle(.secondary) }
+                                if let json = room.fileURLJSON {
+                                    Text(json.lastPathComponent).font(.caption).foregroundStyle(.secondary)
+                                }
+                                if let usdz = room.fileURLUSDZ {
+                                    Text(usdz.lastPathComponent).font(.caption).foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
@@ -45,5 +43,3 @@ struct ProjectWindowView: View {
         }
     }
 }
-
-

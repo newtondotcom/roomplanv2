@@ -60,8 +60,8 @@ struct ExploreProjectsView: View {
             } else {
                 List {
                     ForEach(sortedProjects) { project in
-                        Button {
-                            openWindow(value: project.id)
+                        NavigationLink {
+                            ProjectWindowView(project: project)
                         } label: {
                             HStack {
                                 VStack(alignment: .leading) {
