@@ -9,23 +9,19 @@ import SwiftUI
 import _SpriteKit_SwiftUI
 
 struct RoomCaptureScanView: View {
-    // MARK: - Properties & State
+    private let scanController = ScanController()
     private let model = RoomCaptureModel.shared
-    
+
     @State private var isScanning = false
     @State private var isShowingFloorPlan = false
-    
-    // MARK: - View Body
+
     var body: some View {
         ZStack {
-            // The RoomCaptureView
             RoomCaptureRepresentable()
                 .ignoresSafeArea()
-            
+
             VStack {
                 Spacer()
-                
-                // The button changes accoring to the state of isScanning
                 Button(isScanning ? "Done" : "View 2D floor plan") {
                     if isScanning {
                         stopSession()
@@ -41,33 +37,23 @@ struct RoomCaptureScanView: View {
                 .padding(.bottom)
             }
         }
-        
-        // Start the scan session when the view appears
-        .onAppear {
-            startSession()
-        }
-        
-        // Show the floor plan in full screen
+        .onAppear { startSession() }
         .fullScreenCover(isPresented: $isShowingFloorPlan) {
-            SpriteView(scene: FloorPlanScene(capturedRoom: model.finalRoom!))
-                .ignoresSafeArea()
+            if let room = model.finalRoom {
+                SpriteView(scene: FloorPlanScene(capturedRoom: room))
+                    .ignoresSafeArea()
+            }
         }
     }
-    
+
     private func startSession() {
         isScanning = true
-        model.startSession()
-        
-        // Prevent the screen from sleeping
-        UIApplication.shared.isIdleTimerDisabled = true
+        scanController.start()
     }
-    
+
     private func stopSession() {
         isScanning = false
-        model.stopSession()
-        
-        // Enable the screen to sleep again
-        UIApplication.shared.isIdleTimerDisabled = false
+        scanController.stop()
     }
 }
 
