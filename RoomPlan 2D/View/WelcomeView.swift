@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 
 struct WelcomeView: View {
     @StateObject private var controller = WelcomeController()
+    @State private var showNamingSheet = false
 
     var body: some View {
         VStack {
@@ -36,7 +37,9 @@ struct WelcomeView: View {
                 .tint(Color("AccentColor"))
                 .sheet(isPresented: $controller.showFloorPlan) {
                     if let room = controller.importedRoom {
-                        FloorPlanView(capturedRoom: room)
+                        FloorPlanView(capturedRoom: room) {
+                            showNamingSheet = true
+                        }
                     }
                 }
                 .fullScreenCover(isPresented: $controller.showScanner) {
@@ -50,7 +53,9 @@ struct WelcomeView: View {
                 .tint(Color("AccentColor"))
                 .sheet(isPresented: $controller.showFloorPlan) {
                     if let room = controller.importedRoom {
-                        FloorPlanView(capturedRoom: room)
+                        FloorPlanView(capturedRoom: room) {
+                            showNamingSheet = true
+                        }
                     }
                 }
                 .fullScreenCover(isPresented: $controller.showScanner) {
@@ -109,7 +114,16 @@ struct WelcomeView: View {
         }
         .sheet(isPresented: $controller.showUSDZ) {
             if let url = controller.usdzURL {
-                USDZQuickLookSheet(url: url)
+                USDZQuickLookSheet(url: url) {
+                    showNamingSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showNamingSheet) {
+            ProjectNamingView { name in
+                let rooms = controller.pendingRoomsForNaming
+                ProjectController.shared.addProject(name: name, rooms: rooms, isScannedByApp: false)
+                controller.pendingRoomsForNaming = []
             }
         }
     }

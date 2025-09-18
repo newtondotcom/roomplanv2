@@ -14,35 +14,74 @@ struct RoomCaptureScanView: View {
 
     @State private var isScanning = false
     @State private var isShowingFloorPlan = false
+    @State private var showNamingSheet = false
 
     var body: some View {
-        ZStack {
-            RoomCaptureRepresentable()
-                .ignoresSafeArea()
-
-            VStack {
-                Spacer()
-                Button(isScanning ? "Done" : "View 2D floor plan") {
-                    if isScanning {
-                        stopSession()
-                    } else {
-                        isShowingFloorPlan = true
+        if #available(iOS 17.0, *) {
+            ZStack {
+                RoomCaptureRepresentable()
+                    .ignoresSafeArea()
+                
+                VStack {
+                    Spacer()
+                    Button(isScanning ? "Done" : "View 2D floor plan") {
+                        if isScanning {
+                            stopSession()
+                        } else {
+                            isShowingFloorPlan = true
+                        }
+                    }
+                    .padding()
+                    .background(Color("AccentColor"))
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+                    .fontWeight(.bold)
+                    .padding(.bottom)
+                }
+            }
+            .onAppear { startSession() }
+            .fullScreenCover(isPresented: $isShowingFloorPlan) {
+                if let room = model.finalRoom {
+                    FloorPlanView(capturedRoom: room) {
+                        // proceed to naming
+                        let roomEntry = ProjectRoom(name: "Scan \(Date().formatted(date: .abbreviated, time: .shortened))", fileURLJSON: nil, fileURLUSDZ: nil, data: nil)
+                        ProjectController.shared.addProject(name: roomEntry.name, rooms: [roomEntry], isScannedByApp: true)
                     }
                 }
-                .padding()
-                .background(Color("AccentColor"))
-                .foregroundColor(.white)
-                .clipShape(Capsule())
-                .fontWeight(.bold)
-                .padding(.bottom)
             }
-        }
-        .onAppear { startSession() }
-        .fullScreenCover(isPresented: $isShowingFloorPlan) {
-            if let room = model.finalRoom {
-                SpriteView(scene: FloorPlanScene(capturedRoom: room))
+            // No auto-naming on dismiss
+        } else {
+            ZStack {
+                RoomCaptureRepresentable()
                     .ignoresSafeArea()
+                
+                VStack {
+                    Spacer()
+                    Button(isScanning ? "Done" : "View 2D floor plan") {
+                        if isScanning {
+                            stopSession()
+                        } else {
+                            isShowingFloorPlan = true
+                        }
+                    }
+                    .padding()
+                    .background(Color("AccentColor"))
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+                    .fontWeight(.bold)
+                    .padding(.bottom)
+                }
             }
+            .onAppear { startSession() }
+            .fullScreenCover(isPresented: $isShowingFloorPlan) {
+                if let room = model.finalRoom {
+                    FloorPlanView(capturedRoom: room) {
+                        let roomEntry = ProjectRoom(name: "Scan \(Date().formatted(date: .abbreviated, time: .shortened))", fileURLJSON: nil, fileURLUSDZ: nil, data: nil)
+                        ProjectController.shared.addProject(name: roomEntry.name, rooms: [roomEntry], isScannedByApp: true)
+                    }
+                }
+            }
+            // No auto-naming on dismiss
         }
     }
 

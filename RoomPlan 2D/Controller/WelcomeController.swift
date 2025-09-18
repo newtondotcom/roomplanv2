@@ -22,6 +22,7 @@ final class WelcomeController: ObservableObject {
     @Published var showScanner = false
     @Published var showUSDZ = false
     @Published var usdzURL: URL?
+    @Published var pendingRoomsForNaming: [ProjectRoom] = []
 
     // Errors
     @Published var errorMessage: String?
@@ -43,6 +44,9 @@ final class WelcomeController: ObservableObject {
                 let room = try importer.importCapturedRoom(from: url)
                 importedRoom = room
                 showFloorPlan = true
+                // Prepare room for naming
+                let roomEntry = ProjectRoom(name: url.deletingPathExtension().lastPathComponent, fileURLJSON: url, data: nil)
+                pendingRoomsForNaming = [roomEntry]
             } catch {
                 errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             }
@@ -60,6 +64,9 @@ final class WelcomeController: ObservableObject {
             }
             usdzURL = url
             showUSDZ = true
+            // Prepare room for naming
+            let roomEntry = ProjectRoom(name: url.deletingPathExtension().lastPathComponent, fileURLJSON: nil, fileURLUSDZ: url, data: nil)
+            pendingRoomsForNaming = [roomEntry]
         case .failure(let error):
             errorMessage = "Échec de l'import USDZ: \(error.localizedDescription)"
         }

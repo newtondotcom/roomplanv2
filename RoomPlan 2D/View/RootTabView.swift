@@ -280,6 +280,13 @@ private struct SearchPresentationModifier: ViewModifier {
                         .autocorrectionDisabled()
                         .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                         .toolbarBackground(.visible, for: .navigationBar)
+                        .onChange(of: showsSearch, perform: { newValue in
+                            if newValue {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    searchFocused = true
+                                }
+                            }
+                        })
                         .focused($searchFocused)
                 } else {
                     content

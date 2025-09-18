@@ -34,6 +34,11 @@ final class ProjectController: ObservableObject {
         projects.append(new)
     }
 
+    func addProject(name: String, rooms: [ProjectRoom], isScannedByApp: Bool) {
+        let project = Project(name: name, rooms: rooms, isScannedByApp: isScannedByApp)
+        projects.append(project)
+    }
+
     func updateProject(_ project: Project) {
         guard let idx = projects.firstIndex(where: { $0.id == project.id }) else { return }
         projects[idx] = project
