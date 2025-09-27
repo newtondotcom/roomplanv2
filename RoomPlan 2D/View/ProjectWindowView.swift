@@ -7,6 +7,7 @@
 
 import SwiftUI
 import RoomPlan
+import UniformTypeIdentifiers
 
 struct ProjectWindowView: View {
     let project: Project
@@ -20,6 +21,9 @@ struct ProjectWindowView: View {
     @State private var isShowingDeleteConfirmation = false
     @State private var isMerging = false
     @State private var mergeError: String?
+
+    // NEW: For importing JSON
+    @State private var isImportingJSON = false
 
     init(project: Project) {
         self.project = project
@@ -76,6 +80,16 @@ struct ProjectWindowView: View {
                         }
                         .disabled(isMerging)
                     }
+
+                    // NEW: Upload JSON Room
+                    if project.isScannedByApp {
+                        Button {
+                            isImportingJSON = true
+                        } label: {
+                            Label("Importer une pièce JSON", systemImage: "square.and.arrow.down")
+                        }
+                    }
+
                     Menu {
                         if let (room, jsonURL) = firstRoomWithJSON {
                             Button("Floor Plan") {
@@ -95,6 +109,19 @@ struct ProjectWindowView: View {
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
+                }
+            }
+            .fileImporter(
+                isPresented: $isImportingJSON,
+                allowedContentTypes: [UTType.json],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    importJSONRoom(from: url)
+                case .failure(let error):
+                    mergeError = "Erreur d'import : \(error.localizedDescription)"
                 }
             }
             .sheet(isPresented: $showUSDZSheet) {
@@ -126,7 +153,7 @@ struct ProjectWindowView: View {
                     Text("Êtes-vous sûr de vouloir supprimer la pièce « \(room.name) » ?")
                 }
             }
-            .alert("Erreur fusion", isPresented: .constant(mergeError != nil), actions: {
+            .alert("Erreur", isPresented: .constant(mergeError != nil), actions: {
                 Button("OK", role: .cancel) { mergeError = nil }
             }, message: {
                 if let mergeError { Text(mergeError) }
@@ -196,6 +223,42 @@ struct ProjectWindowView: View {
             ProjectController.shared.updateProject(updatedProject)
         } catch {
             mergeError = "Erreur lors de la fusion : \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Import JSON Room
+
+    private func importJSONRoom(from url: URL) {
+        do {
+            // Optionally, validate file contents
+            let data = try Data(contentsOf: url)
+            let decoded = try JSONDecoder().decode(CapturedRoom.self, from: data)
+            let roomName = url.deletingPathExtension().lastPathComponent
+
+            // Copy file to project directory (if needed)
+            let targetDir = rooms.first?.fileURLJSON?.deletingLastPathComponent()
+            let destURL: URL
+            if let dir = targetDir {
+                destURL = dir.appendingPathComponent(url.lastPathComponent)
+                if destURL != url {
+                    try? FileManager.default.copyItem(at: url, to: destURL)
+                }
+            } else {
+                destURL = url
+            }
+
+            let newRoom = ProjectRoom(
+                name: roomName,
+                fileURLJSON: destURL,
+                fileURLUSDZ: nil,
+                data: data
+            )
+            rooms.append(newRoom)
+            var updatedProject = project
+            updatedProject.rooms = rooms
+            ProjectController.shared.updateProject(updatedProject)
+        } catch {
+            mergeError = "Impossible d'importer ce fichier JSON : \(error.localizedDescription)"
         }
     }
 }
