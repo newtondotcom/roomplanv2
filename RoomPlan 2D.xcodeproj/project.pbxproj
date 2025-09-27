@@ -21,7 +21,7 @@
 		00F2EF532E7C378A00B96DC9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF522E7C378A00B96DC9 /* SettingsView.swift */; };
 		00F2EF552E7C3B3D00B96DC9 /* ProjectNamingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF542E7C3B3D00B96DC9 /* ProjectNamingView.swift */; };
 		95360D0029A8DC8700BDBED0 /* RoomPlan_2DApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */; };
-		95360D0229A8DC8700BDBED0 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360D0129A8DC8700BDBED0 /* WelcomeView.swift */; };
+		95360D0229A8DC8700BDBED0 /* NewProjectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360D0129A8DC8700BDBED0 /* NewProjectView.swift */; };
 		95360D0429A8DC8800BDBED0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 95360D0329A8DC8800BDBED0 /* Assets.xcassets */; };
 		95360D0729A8DC8800BDBED0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 95360D0629A8DC8800BDBED0 /* Preview Assets.xcassets */; };
 		95360D0E29A8E14500BDBED0 /* RoomCaptureModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95360D0D29A8E14500BDBED0 /* RoomCaptureModel.swift */; };
@@ -52,7 +52,7 @@
 		00F2EF542E7C3B3D00B96DC9 /* ProjectNamingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectNamingView.swift; sourceTree = "<group>"; };
 		95360CFC29A8DC8700BDBED0 /* RoomPlan 2D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RoomPlan 2D.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		95360CFF29A8DC8700BDBED0 /* RoomPlan_2DApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPlan_2DApp.swift; sourceTree = "<group>"; };
-		95360D0129A8DC8700BDBED0 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		95360D0129A8DC8700BDBED0 /* NewProjectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewProjectView.swift; sourceTree = "<group>"; };
 		95360D0329A8DC8800BDBED0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		95360D0629A8DC8800BDBED0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		95360D0D29A8E14500BDBED0 /* RoomCaptureModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomCaptureModel.swift; sourceTree = "<group>"; };
@@ -97,7 +97,7 @@
 				00F2EF502E7C2C8100B96DC9 /* ProjectWindowView.swift */,
 				008BA7D72E7AFD5800956D2D /* RootTabView.swift */,
 				008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */,
-				95360D0129A8DC8700BDBED0 /* WelcomeView.swift */,
+				95360D0129A8DC8700BDBED0 /* NewProjectView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -265,7 +265,7 @@
 				00F2EF512E7C2C8100B96DC9 /* ProjectWindowView.swift in Sources */,
 				95360D0E29A8E14500BDBED0 /* RoomCaptureModel.swift in Sources */,
 				00F2EF3D2E7C256100B96DC9 /* RoomImporting.swift in Sources */,
-				95360D0229A8DC8700BDBED0 /* WelcomeView.swift in Sources */,
+				95360D0229A8DC8700BDBED0 /* NewProjectView.swift in Sources */,
 				953FDAE229BAA0BD00A7AACF /* FloorPlanScene.swift in Sources */,
 				953FDAE629BB8F3E00A7AACF /* CGPoint+RotateAround.swift in Sources */,
 				95360D1029A8E59600BDBED0 /* RoomCaptureRepresentable.swift in Sources */,

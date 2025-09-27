@@ -35,6 +35,7 @@ struct NewProjectView: View {
                 .buttonStyle(.glass)
                 .controlSize(.large)
                 .tint(Color("AccentColor"))
+                // FloorPlanView is only shown after scan, not import
                 .sheet(isPresented: $controller.showFloorPlan) {
                     if let room = controller.importedRoom {
                         FloorPlanView(capturedRoom: room) {
@@ -51,6 +52,7 @@ struct NewProjectView: View {
                 }
                 .controlSize(.large)
                 .tint(Color("AccentColor"))
+                // FloorPlanView is only shown after scan, not import
                 .sheet(isPresented: $controller.showFloorPlan) {
                     if let room = controller.importedRoom {
                         FloorPlanView(capturedRoom: room) {
@@ -112,6 +114,7 @@ struct NewProjectView: View {
         ) {
             // Intentionally empty or remove if not needed
         }
+        // Show USDZQuickLookSheet only after scan, not import
         .sheet(isPresented: $controller.showUSDZ) {
             if let url = controller.usdzURL {
                 USDZQuickLookSheet(url: url) {
@@ -119,6 +122,7 @@ struct NewProjectView: View {
                 }
             }
         }
+        // Show naming sheet when pendingRoomsForNaming is set (after import or scan)
         .sheet(isPresented: $showNamingSheet) {
             ProjectNamingView { name in
                 let rooms = controller.pendingRoomsForNaming

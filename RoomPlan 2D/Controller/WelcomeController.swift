@@ -5,7 +5,6 @@
 //  Created by Robin Augereau on 18/09/2025.
 //
 
-
 import Foundation
 import RoomPlan
 import UniformTypeIdentifiers
@@ -42,9 +41,8 @@ final class WelcomeController: ObservableObject {
             }
             do {
                 let room = try importer.importCapturedRoom(from: url)
+                // Only prepare for naming, do NOT set showFloorPlan
                 importedRoom = room
-                showFloorPlan = true
-                // Prepare room for naming
                 let roomEntry = ProjectRoom(name: url.deletingPathExtension().lastPathComponent, fileURLJSON: url, data: nil)
                 pendingRoomsForNaming = [roomEntry]
             } catch {
@@ -62,9 +60,8 @@ final class WelcomeController: ObservableObject {
                 errorMessage = "Aucun fichier sélectionné."
                 return
             }
+            // Only prepare for naming, do NOT set showUSDZ
             usdzURL = url
-            showUSDZ = true
-            // Prepare room for naming
             let roomEntry = ProjectRoom(name: url.deletingPathExtension().lastPathComponent, fileURLJSON: nil, fileURLUSDZ: url, data: nil)
             pendingRoomsForNaming = [roomEntry]
         case .failure(let error):
@@ -72,5 +69,3 @@ final class WelcomeController: ObservableObject {
         }
     }
 }
-
-
