@@ -50,15 +50,23 @@ struct ProjectWindowView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(rooms) { room in
-                            VStack(alignment: .leading) {
-                                Text(room.name + (room.merged ? " (fusionnée)" : ""))
-                                if let json = room.fileURLJSON {
-                                    Text(json.lastPathComponent).font(.caption).foregroundStyle(.secondary)
-                                }
+                            Button {
                                 if let usdz = room.fileURLUSDZ {
-                                    Text(usdz.lastPathComponent).font(.caption).foregroundStyle(.secondary)
+                                    usdzURL = usdz
+                                    showUSDZSheet = true
+                                }
+                            } label: {
+                                VStack(alignment: .leading) {
+                                    Text(room.name + (room.merged ? " (fusionnée)" : ""))
+                                    if let json = room.fileURLJSON {
+                                        Text(json.lastPathComponent).font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    if let usdz = room.fileURLUSDZ {
+                                        Text(usdz.lastPathComponent).font(.caption).foregroundStyle(.secondary)
+                                    }
                                 }
                             }
+                            .buttonStyle(.plain)
                             .if(project.isScannedByApp) { view in
                                 view.swipeActions(edge: .trailing) {
                                     // Delete action
