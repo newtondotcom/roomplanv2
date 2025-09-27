@@ -35,6 +35,11 @@ struct ProjectWindowView: View {
         self._rooms = State(initialValue: project.rooms)
     }
 
+    // Add this computed property:
+    private var unmergedRoomsCount: Int {
+        rooms.filter { !$0.merged }.count
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -94,8 +99,8 @@ struct ProjectWindowView: View {
             .navigationTitle(project.name)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    // Merge button: only if scanned and more than one room
-                    if project.isScannedByApp && rooms.count > 1 {
+                    // Merge button: only if scanned and more than one *unmerged* room
+                    if project.isScannedByApp && unmergedRoomsCount > 1 {
                         Button {
                             Task { await mergeRooms() }
                         } label: {
