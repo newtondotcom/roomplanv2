@@ -22,7 +22,7 @@ struct ProjectWindowView: View {
     @State private var isMerging = false
     @State private var mergeError: String?
 
-    // NEW: For importing JSON
+    // For importing JSON(s)
     @State private var isImportingJSON = false
 
     init(project: Project) {
@@ -80,16 +80,14 @@ struct ProjectWindowView: View {
                         }
                         .disabled(isMerging)
                     }
-
-                    // NEW: Upload JSON Room
+                    // Upload JSON Room(s)
                     if project.isScannedByApp {
                         Button {
                             isImportingJSON = true
                         } label: {
-                            Label("Importer une pièce JSON", systemImage: "square.and.arrow.down")
+                            Label("Importer des pièces JSON", systemImage: "square.and.arrow.down")
                         }
                     }
-
                     Menu {
                         if let (room, jsonURL) = firstRoomWithJSON {
                             Button("Floor Plan") {
@@ -114,12 +112,11 @@ struct ProjectWindowView: View {
             .fileImporter(
                 isPresented: $isImportingJSON,
                 allowedContentTypes: [UTType.json],
-                allowsMultipleSelection: false
+                allowsMultipleSelection: true // <- Allow multiple
             ) { result in
                 switch result {
                 case .success(let urls):
-                    guard let url = urls.first else { return }
-                    importJSONRoom(from: url)
+                    importJSONRooms(from: urls)
                 case .failure(let error):
                     mergeError = "Erreur d'import : \(error.localizedDescription)"
                 }
@@ -226,39 +223,41 @@ struct ProjectWindowView: View {
         }
     }
 
-    // MARK: - Import JSON Room
-
-    private func importJSONRoom(from url: URL) {
-        do {
-            // Optionally, validate file contents
-            let data = try Data(contentsOf: url)
-            let decoded = try JSONDecoder().decode(CapturedRoom.self, from: data)
-            let roomName = url.deletingPathExtension().lastPathComponent
-
-            // Copy file to project directory (if needed)
-            let targetDir = rooms.first?.fileURLJSON?.deletingLastPathComponent()
-            let destURL: URL
-            if let dir = targetDir {
-                destURL = dir.appendingPathComponent(url.lastPathComponent)
-                if destURL != url {
-                    try? FileManager.default.copyItem(at: url, to: destURL)
+    // MARK: - Import multiple JSON rooms
+    private func importJSONRooms(from urls: [URL]) {
+        var newRooms: [ProjectRoom] = []
+        let targetDir = rooms.first?.fileURLJSON?.deletingLastPathComponent()
+        for url in urls {
+            do {
+                let data = try Data(contentsOf: url)
+                // Try decoding to verify valid room
+                _ = try JSONDecoder().decode(CapturedRoom.self, from: data)
+                let roomName = url.deletingPathExtension().lastPathComponent
+                let destURL: URL
+                if let dir = targetDir {
+                    destURL = dir.appendingPathComponent(url.lastPathComponent)
+                    if destURL != url {
+                        try? FileManager.default.copyItem(at: url, to: destURL)
+                    }
+                } else {
+                    destURL = url
                 }
-            } else {
-                destURL = url
+                let newRoom = ProjectRoom(
+                    name: roomName,
+                    fileURLJSON: destURL,
+                    fileURLUSDZ: nil,
+                    data: data
+                )
+                newRooms.append(newRoom)
+            } catch {
+                mergeError = "Un des fichiers n'a pas pu être importé : \(url.lastPathComponent) (\(error.localizedDescription))"
             }
-
-            let newRoom = ProjectRoom(
-                name: roomName,
-                fileURLJSON: destURL,
-                fileURLUSDZ: nil,
-                data: data
-            )
-            rooms.append(newRoom)
+        }
+        if !newRooms.isEmpty {
+            rooms.append(contentsOf: newRooms)
             var updatedProject = project
             updatedProject.rooms = rooms
             ProjectController.shared.updateProject(updatedProject)
-        } catch {
-            mergeError = "Impossible d'importer ce fichier JSON : \(error.localizedDescription)"
         }
     }
 }
