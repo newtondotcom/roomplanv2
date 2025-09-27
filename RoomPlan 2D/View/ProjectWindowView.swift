@@ -35,9 +35,14 @@ struct ProjectWindowView: View {
         self._rooms = State(initialValue: project.rooms)
     }
 
-    // Add this computed property:
+    // Computed property: count of unmerged rooms
     private var unmergedRoomsCount: Int {
         rooms.filter { !$0.merged }.count
+    }
+
+    // Computed property: true if exactly one merged room
+    private var hasSingleMergedRoom: Bool {
+        rooms.filter { $0.merged }.count == 1
     }
 
     var body: some View {
