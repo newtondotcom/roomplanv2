@@ -25,6 +25,11 @@ struct ProjectWindowView: View {
     // For importing JSON(s)
     @State private var isImportingJSON = false
 
+    // For renaming
+    @State private var roomToRename: ProjectRoom?
+    @State private var newRoomName: String = ""
+    @State private var isShowingRenameAlert: Bool = false
+
     init(project: Project) {
         self.project = project
         self._rooms = State(initialValue: project.rooms)
@@ -55,13 +60,23 @@ struct ProjectWindowView: View {
                                 }
                             }
                             .if(project.isScannedByApp) { view in
-                                view.swipeActions {
+                                view.swipeActions(edge: .trailing) {
+                                    // Delete action
                                     Button(role: .destructive) {
                                         roomToDelete = room
                                         isShowingDeleteConfirmation = true
                                     } label: {
                                         Label("Supprimer", systemImage: "trash")
                                     }
+                                    // Rename action
+                                    Button {
+                                        roomToRename = room
+                                        newRoomName = room.name
+                                        isShowingRenameAlert = true
+                                    } label: {
+                                        Label("Renommer", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
                                 }
                             }
                         }
@@ -112,7 +127,7 @@ struct ProjectWindowView: View {
             .fileImporter(
                 isPresented: $isImportingJSON,
                 allowedContentTypes: [UTType.json],
-                allowsMultipleSelection: true // <- Allow multiple
+                allowsMultipleSelection: true
             ) { result in
                 switch result {
                 case .success(let urls):
@@ -150,6 +165,26 @@ struct ProjectWindowView: View {
                     Text("Êtes-vous sûr de vouloir supprimer la pièce « \(room.name) » ?")
                 }
             }
+            .alert("Renommer la pièce", isPresented: $isShowingRenameAlert, actions: {
+                TextField("Nom de la pièce", text: $newRoomName)
+                Button("Enregistrer") {
+                    if let toRename = roomToRename, let idx = rooms.firstIndex(of: toRename) {
+                        rooms[idx].name = newRoomName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        // Persist change
+                        var updatedProject = project
+                        updatedProject.rooms = rooms
+                        ProjectController.shared.updateProject(updatedProject)
+                    }
+                    roomToRename = nil
+                    newRoomName = ""
+                }
+                Button("Annuler", role: .cancel) {
+                    roomToRename = nil
+                    newRoomName = ""
+                }
+            }, message: {
+                Text("Entrer un nouveau nom pour la pièce.")
+            })
             .alert("Erreur", isPresented: .constant(mergeError != nil), actions: {
                 Button("OK", role: .cancel) { mergeError = nil }
             }, message: {
@@ -230,7 +265,6 @@ struct ProjectWindowView: View {
         for url in urls {
             do {
                 let data = try Data(contentsOf: url)
-                // Try decoding to verify valid room
                 _ = try JSONDecoder().decode(CapturedRoom.self, from: data)
                 let roomName = url.deletingPathExtension().lastPathComponent
                 let destURL: URL
