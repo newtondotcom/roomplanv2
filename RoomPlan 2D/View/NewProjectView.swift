@@ -10,7 +10,7 @@ import _SpriteKit_SwiftUI
 import RoomPlan
 import UniformTypeIdentifiers
 
-struct WelcomeView: View {
+struct NewProjectView: View {
     @StateObject private var controller = WelcomeController()
     @State private var showNamingSheet = false
 
@@ -132,7 +132,7 @@ struct WelcomeView: View {
 struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            WelcomeView()
+            NewProjectView()
         }
     }
 }

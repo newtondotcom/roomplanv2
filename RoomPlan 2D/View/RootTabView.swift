@@ -174,7 +174,7 @@ struct RootTabView: View {
     #if !os(macOS)
     private var newContainer: some View {
         NavigationStack {
-            WelcomeView()
+            NewProjectView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color("BackgroundColor").ignoresSafeArea())
                 .navigationTitle("Nouveau projet")
