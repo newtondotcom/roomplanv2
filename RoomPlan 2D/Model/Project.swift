@@ -12,6 +12,7 @@ struct ProjectRoom: Identifiable, Codable, Hashable {
     var name: String
     var fileURLJSON: URL?
     var fileURLUSDZ: URL?
+    var merged : Bool
     var data: Data?
 
     init(
@@ -19,13 +20,15 @@ struct ProjectRoom: Identifiable, Codable, Hashable {
         name: String,
         fileURLJSON: URL? = nil,
         fileURLUSDZ: URL? = nil,
-        data: Data? = nil
+        data: Data? = nil,
+        merged: Bool? = false
     ) {
         self.id = id
         self.name = name
         self.fileURLJSON = fileURLJSON
         self.fileURLUSDZ = fileURLUSDZ
         self.data = data
+        self.merged = false
     }
 }
 

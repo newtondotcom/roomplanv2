@@ -18,6 +18,8 @@ struct ProjectWindowView: View {
     @State private var rooms: [ProjectRoom]
     @State private var roomToDelete: ProjectRoom?
     @State private var isShowingDeleteConfirmation = false
+    @State private var isMerging = false
+    @State private var mergeError: String?
 
     init(project: Project) {
         self.project = project
@@ -40,7 +42,7 @@ struct ProjectWindowView: View {
                     } else {
                         ForEach(rooms) { room in
                             VStack(alignment: .leading) {
-                                Text(room.name)
+                                Text(room.name + (room.merged ? " (fusionnée)" : ""))
                                 if let json = room.fileURLJSON {
                                     Text(json.lastPathComponent).font(.caption).foregroundStyle(.secondary)
                                 }
@@ -48,7 +50,6 @@ struct ProjectWindowView: View {
                                     Text(usdz.lastPathComponent).font(.caption).foregroundStyle(.secondary)
                                 }
                             }
-                            // Only allow deleting for project scanned by app
                             .if(project.isScannedByApp) { view in
                                 view.swipeActions {
                                     Button(role: .destructive) {
@@ -65,7 +66,16 @@ struct ProjectWindowView: View {
             }
             .navigationTitle(project.name)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    // Merge button: only if scanned and more than one room
+                    if project.isScannedByApp && rooms.count > 1 {
+                        Button {
+                            Task { await mergeRooms() }
+                        } label: {
+                            Label("Fusionner les pièces", systemImage: "square.stack.3d.down.right")
+                        }
+                        .disabled(isMerging)
+                    }
                     Menu {
                         if let (room, jsonURL) = firstRoomWithJSON {
                             Button("Floor Plan") {
@@ -116,6 +126,19 @@ struct ProjectWindowView: View {
                     Text("Êtes-vous sûr de vouloir supprimer la pièce « \(room.name) » ?")
                 }
             }
+            .alert("Erreur fusion", isPresented: .constant(mergeError != nil), actions: {
+                Button("OK", role: .cancel) { mergeError = nil }
+            }, message: {
+                if let mergeError { Text(mergeError) }
+            })
+            .overlay {
+                if isMerging {
+                    ZStack {
+                        Color.black.opacity(0.3).ignoresSafeArea()
+                        ProgressView("Fusion des pièces…").padding().background(.thinMaterial).clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+            }
         }
     }
 
@@ -133,6 +156,47 @@ struct ProjectWindowView: View {
             if let url = room.fileURLUSDZ { return (room, url) }
         }
         return nil
+    }
+
+    // MARK: - Merge Logic
+
+    private func mergeRooms() async {
+        isMerging = true
+        defer { isMerging = false }
+        do {
+            // Load CapturedRoom for all rooms with fileURLJSON
+            let capturedRooms: [CapturedRoom] = try rooms.compactMap { room in
+                guard let url = room.fileURLJSON else { return nil }
+                let data = try Data(contentsOf: url)
+                return try JSONDecoder().decode(CapturedRoom.self, from: data)
+            }
+            guard capturedRooms.count > 1 else { mergeError = "Pas assez de pièces à fusionner."; return }
+            // Merge using RoomPlan
+            let merged = try await CapturedRoom.merged(from: capturedRooms)
+            // Save merged room to a new file in the same directory as the first room
+            guard let firstURL = rooms.first?.fileURLJSON else { mergeError = "Impossible de déterminer l'emplacement du fichier."; return }
+            let dir = firstURL.deletingLastPathComponent()
+            let mergedName = "Fusion-\(Date().ISO8601Format())"
+            let mergedURL = dir.appendingPathComponent("\(mergedName).json")
+            
+            let mergedData = try JSONEncoder().encode(merged)
+            try mergedData.write(to: mergedURL)
+            // Add as a new ProjectRoom
+            let mergedRoom = ProjectRoom(
+                name: mergedName,
+                fileURLJSON: mergedURL,
+                fileURLUSDZ: nil,
+                data: nil,
+                merged: true
+            )
+            rooms.append(mergedRoom)
+            // Persist update
+            var updatedProject = project
+            updatedProject.rooms = rooms
+            ProjectController.shared.updateProject(updatedProject)
+        } catch {
+            mergeError = "Erreur lors de la fusion : \(error.localizedDescription)"
+        }
     }
 }
 
