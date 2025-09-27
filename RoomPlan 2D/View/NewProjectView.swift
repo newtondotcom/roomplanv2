@@ -1,139 +1,59 @@
 //
-//  WelcomeView.swift
+//  NewProjectView.swift
 //  RoomPlan 2D
 //
 //  Created by Dennis van Oosten on 24/02/2023.
 //
 
 import SwiftUI
-import _SpriteKit_SwiftUI
-import RoomPlan
-import UniformTypeIdentifiers
 
 struct NewProjectView: View {
-    @StateObject private var controller = WelcomeController()
-    @State private var showNamingSheet = false
+    @ObservedObject private var projectController = ProjectController.shared
+
+    @State private var showingNamingSheet = true
+    @State private var newProjectName = ""
+    @State private var createdProject: Project? = nil
 
     var body: some View {
-        VStack {
-            Image(systemName: "house")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-                .padding(.bottom, 8)
-
-            Text("RoomPlan 2D")
-                .font(.title)
-                .fontWeight(.bold)
-            Text("Scan your room and create a 2D floor plan.")
-
-            Spacer().frame(height: 50)
-
-            if #available(iOS 26.0, *) {
-                NavigationLink("Start Scanning") {
-                    RoomCaptureScanView()
-                }
-                .buttonStyle(.glass)
-                .controlSize(.large)
-                .tint(Color("AccentColor"))
-                // FloorPlanView is only shown after scan, not import
-                .sheet(isPresented: $controller.showFloorPlan) {
-                    if let room = controller.importedRoom {
-                        FloorPlanView(capturedRoom: room) {
-                            showNamingSheet = true
-                        }
-                    }
-                }
-                .fullScreenCover(isPresented: $controller.showScanner) {
-                    RoomCaptureScanView()
-                }
+        ZStack {
+            if let project = createdProject {
+                ProjectWindowView(project: project)
             } else {
-                NavigationLink("Start Scanning") {
-                    RoomCaptureScanView()
-                }
-                .controlSize(.large)
-                .tint(Color("AccentColor"))
-                // FloorPlanView is only shown after scan, not import
-                .sheet(isPresented: $controller.showFloorPlan) {
-                    if let room = controller.importedRoom {
-                        FloorPlanView(capturedRoom: room) {
-                            showNamingSheet = true
-                        }
-                    }
-                }
-                .fullScreenCover(isPresented: $controller.showScanner) {
-                    RoomCaptureScanView()
-                }
-            }
+                // Show a placeholder or branding while waiting for project naming
+                VStack {
+                    Image(systemName: "house")
+                        .imageScale(.large)
+                        .foregroundColor(.accentColor)
+                        .padding(.bottom, 8)
 
-            Button {
-                controller.isImportingJSON = true
-            } label: {
-                Text("Import Scan")
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(Color("AccentColor"))
-            .padding(.top, 8)
-            .fileImporter(
-                isPresented: $controller.isImportingJSON,
-                allowedContentTypes: [UTType.json],
-                allowsMultipleSelection: false
-            ) { result in
-                controller.handleJSONImportResult(result)
-            }
-
-            Button {
-                controller.isImportingUSDZ = true
-            } label: {
-                Text("Import USDZ")
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .padding(.top, 8)
-            .fileImporter(
-                isPresented: $controller.isImportingUSDZ,
-                allowedContentTypes: [UTType.usdz, UTType(filenameExtension: "usdz")!],
-                allowsMultipleSelection: false
-            ) { result in
-                controller.handleUSDZImportResult(result)
-            }
-
-            if let error = controller.errorMessage {
-                Text(error)
-                    .foregroundColor(.red)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 8)
-                    .padding(.horizontal)
-            }
-        }
-        .confirmationDialog(
-            "Que souhaitez-vous afficher ?",
-            isPresented: .constant(false), // no longer used; navigation is explicit
-            titleVisibility: .visible
-        ) {
-            // Intentionally empty or remove if not needed
-        }
-        // Show USDZQuickLookSheet only after scan, not import
-        .sheet(isPresented: $controller.showUSDZ) {
-            if let url = controller.usdzURL {
-                USDZQuickLookSheet(url: url) {
-                    showNamingSheet = true
+                    Text("RoomPlan 2D")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .padding(.bottom)
+                    Text("Créez un projet pour commencer.")
+                        .foregroundStyle(.secondary)
                 }
             }
         }
-        // Show naming sheet when pendingRoomsForNaming is set (after import or scan)
-        .sheet(isPresented: $showNamingSheet) {
+        .sheet(isPresented: $showingNamingSheet, onDismiss: {
+            // If the sheet is dismissed without a name, navigate back
+            if createdProject == nil {
+                // Optionally pop/dismiss view here if part of navigation stack
+            }
+        }) {
             ProjectNamingView { name in
-                let rooms = controller.pendingRoomsForNaming
-                ProjectController.shared.addProject(name: name, rooms: rooms, isScannedByApp: false)
-                controller.pendingRoomsForNaming = []
+                // Create and select the new project
+                projectController.addProject(name: name)
+                if let project = projectController.projects.last {
+                    createdProject = project
+                }
+                showingNamingSheet = false
             }
         }
     }
 }
 
-struct WelcomeView_Previews: PreviewProvider {
+struct NewProjectView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
             NewProjectView()
