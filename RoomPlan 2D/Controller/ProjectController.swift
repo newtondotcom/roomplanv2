@@ -33,7 +33,8 @@ final class ProjectController: ObservableObject {
     }
 
     func addProject(name: String) {
-        let new = Project(name: name)
+        var new = Project(name: name)
+        new.isScannedByApp = true;
         print("[ProjectController] Adding project: \(new.name) (id=\(new.id))")
         projects.append(new)
     }
