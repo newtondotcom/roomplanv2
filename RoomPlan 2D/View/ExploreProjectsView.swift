@@ -11,11 +11,11 @@ import Foundation
 struct ExploreProjectsView: View {
     @ObservedObject private var controller = ProjectController.shared
 
-    // Optional external data source to allow parent to inject filtered results
-    var projects: [Project]?
+    var projects: [Project]? = nil
+    @Binding var newlyCreatedProjectId: UUID?
 
-    @State private var newProjectName = ""
-    @Environment(\.openWindow) private var openWindow
+    @State private var sortOption: SortOption = .dateDesc
+    @State private var selection: UUID? = nil // Pour NavigationLink
 
     private enum SortOption: String, CaseIterable {
         case dateAsc
@@ -23,9 +23,6 @@ struct ExploreProjectsView: View {
         case roomsAsc
         case roomsDesc
     }
-
-    @State private var sortOption: SortOption = .dateDesc
-    // search handled by SearchPresentationModifier in RootTabView
 
     private var effectiveProjects: [Project] {
         projects ?? controller.projects
@@ -58,11 +55,17 @@ struct ExploreProjectsView: View {
                         .foregroundStyle(.secondary)
                 }
             } else {
-                List {
+                List(selection: $selection) {
                     ForEach(sortedProjects) { project in
-                        NavigationLink {
-                            ProjectWindowView(project: project)
-                        } label: {
+                        NavigationLink(
+                            destination:
+                                ProjectWindowView(project: project)
+                                    .onAppear {
+                                        newlyCreatedProjectId = nil
+                                    },
+                            tag: project.id,
+                            selection: $selection
+                        ) {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(project.name)
@@ -71,15 +74,34 @@ struct ExploreProjectsView: View {
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.tertiary)
                             }
                         }
+                        // Swipe actions removed here. No .onDelete or .swipeActions.
                     }
-                    .onDelete(perform: controller.deleteProjects)
                 }
                 .listStyle(.insetGrouped)
+                .onAppear {
+                    if let id = newlyCreatedProjectId {
+                        // Reset selection first to avoid keeping the old project selected
+                        selection = nil
+                        // Delay needed to allow NavigationLink to close before reopening
+                        DispatchQueue.main.async {
+                            selection = id
+                        }
+                        // newlyCreatedProjectId will be reset in the detail view onAppear
+                    }
+                }
+                .onChange(of: newlyCreatedProjectId) { newValue in
+                    if let id = newValue {
+                        // Reset selection first to avoid keeping the old project selected
+                        selection = nil
+                        // Delay needed to allow NavigationLink to close before reopening
+                        DispatchQueue.main.async {
+                            selection = id
+                        }
+                        // newlyCreatedProjectId will be reset in the detail view onAppear
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

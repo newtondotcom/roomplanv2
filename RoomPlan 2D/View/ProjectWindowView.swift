@@ -25,10 +25,18 @@ struct ProjectWindowView: View {
     // For importing JSON(s)
     @State private var isImportingJSON = false
 
-    // For renaming
+    // For renaming rooms
     @State private var roomToRename: ProjectRoom?
     @State private var newRoomName: String = ""
     @State private var isShowingRenameAlert: Bool = false
+
+    // For renaming/deleting project
+    @State private var isShowingProjectRenameAlert: Bool = false
+    @State private var isShowingProjectDeleteConfirmation: Bool = false
+    @State private var newProjectNameForAlert: String = ""
+
+    // For navigation after project deletion
+    @Environment(\.dismiss) private var dismiss
 
     init(project: Project) {
         self.project = project
@@ -107,7 +115,7 @@ struct ProjectWindowView: View {
                     // Merge button: only if scanned and more than one *unmerged* room
                     if project.isScannedByApp && unmergedRoomsCount > 1 {
                         Button {
-                            Task { await mergeRooms() }
+                            mergeError = "La fusion des pièces n'est pas encore supportée dans cette version."
                         } label: {
                             Label("Fusionner les pièces", systemImage: "square.stack.3d.down.right")
                         }
@@ -122,7 +130,7 @@ struct ProjectWindowView: View {
                         }
                     }
                     Menu {
-                        if let (room, jsonURL) = firstRoomWithJSON {
+                        if let (_, jsonURL) = firstRoomWithJSON {
                             Button("Floor Plan") {
                                 if let roomData = try? Data(contentsOf: jsonURL),
                                    let captured = try? JSONDecoder().decode(CapturedRoom.self, from: roomData) {
@@ -136,6 +144,18 @@ struct ProjectWindowView: View {
                                 self.usdzURL = usdzURL
                                 showUSDZSheet = true
                             }
+                        }
+                        Divider()
+                        Button {
+                            newProjectNameForAlert = project.name
+                            isShowingProjectRenameAlert = true
+                        } label: {
+                            Label("Renommer le projet", systemImage: "pencil")
+                        }
+                        Button(role: .destructive) {
+                            isShowingProjectDeleteConfirmation = true
+                        } label: {
+                            Label("Supprimer le projet", systemImage: "trash")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -203,6 +223,36 @@ struct ProjectWindowView: View {
             }, message: {
                 Text("Entrer un nouveau nom pour la pièce.")
             })
+            .alert("Renommer le projet", isPresented: $isShowingProjectRenameAlert, actions: {
+                TextField("Nom du projet", text: $newProjectNameForAlert)
+                Button("Enregistrer") {
+                    let trimmed = newProjectNameForAlert.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        var updated = project
+                        updated.name = trimmed
+                        ProjectController.shared.updateProject(updated)
+                    }
+                    isShowingProjectRenameAlert = false
+                }
+                Button("Annuler", role: .cancel) {
+                    isShowingProjectRenameAlert = false
+                }
+            }, message: {
+                Text("Entrer le nouveau nom du projet.")
+            })
+            .confirmationDialog("Supprimer le projet ?", isPresented: $isShowingProjectDeleteConfirmation, titleVisibility: .visible) {
+                Button("Supprimer le projet", role: .destructive) {
+                    // Suppression du projet via ProjectController
+                    if let idx = ProjectController.shared.projects.firstIndex(where: { $0.id == project.id }) {
+                        ProjectController.shared.deleteProjects(at: IndexSet(integer: idx))
+                    }
+                    // Revenir à l'écran précédent
+                    dismiss()
+                }
+                Button("Annuler", role: .cancel) {}
+            } message: {
+                Text("Êtes-vous sûr de vouloir supprimer le projet « \(project.name) » ? Cette action est irréversible.")
+            }
             .alert("Erreur", isPresented: .constant(mergeError != nil), actions: {
                 Button("OK", role: .cancel) { mergeError = nil }
             }, message: {
@@ -235,52 +285,19 @@ struct ProjectWindowView: View {
         return nil
     }
 
-    // MARK: - Merge Logic
-
-    private func mergeRooms() async {
-        isMerging = true
-        defer { isMerging = false }
-        do {
-            // Load CapturedRoom for all rooms with fileURLJSON
-            let capturedRooms: [CapturedRoom] = try rooms.compactMap { room in
-                guard let url = room.fileURLJSON else { return nil }
-                let data = try Data(contentsOf: url)
-                return try JSONDecoder().decode(CapturedRoom.self, from: data)
-            }
-            guard capturedRooms.count > 1 else { mergeError = "Pas assez de pièces à fusionner."; return }
-            // Merge using RoomPlan
-            let merged = try await CapturedRoom.merged(from: capturedRooms)
-            // Save merged room to a new file in the same directory as the first room
-            guard let firstURL = rooms.first?.fileURLJSON else { mergeError = "Impossible de déterminer l'emplacement du fichier."; return }
-            let dir = firstURL.deletingLastPathComponent()
-            let mergedName = "Fusion-\(Date().ISO8601Format())"
-            let mergedURL = dir.appendingPathComponent("\(mergedName).json")
-            
-            let mergedData = try JSONEncoder().encode(merged)
-            try mergedData.write(to: mergedURL)
-            // Add as a new ProjectRoom
-            let mergedRoom = ProjectRoom(
-                name: mergedName,
-                fileURLJSON: mergedURL,
-                fileURLUSDZ: nil,
-                data: nil,
-                merged: true
-            )
-            rooms.append(mergedRoom)
-            // Persist update
-            var updatedProject = project
-            updatedProject.rooms = rooms
-            ProjectController.shared.updateProject(updatedProject)
-        } catch {
-            mergeError = "Erreur lors de la fusion : \(error.localizedDescription)"
-        }
-    }
-
     // MARK: - Import multiple JSON rooms
     private func importJSONRooms(from urls: [URL]) {
         var newRooms: [ProjectRoom] = []
         let targetDir = rooms.first?.fileURLJSON?.deletingLastPathComponent()
         for url in urls {
+            let didAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if didAccess { url.stopAccessingSecurityScopedResource() }
+            }
+            guard didAccess else {
+                mergeError = "Impossible d'accéder au fichier sécurisé : \(url.lastPathComponent)"
+                continue
+            }
             do {
                 let data = try Data(contentsOf: url)
                 _ = try JSONDecoder().decode(CapturedRoom.self, from: data)
@@ -326,3 +343,4 @@ private extension View {
         }
     }
 }
+

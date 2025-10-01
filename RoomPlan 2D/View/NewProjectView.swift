@@ -14,18 +14,24 @@ struct NewProjectView: View {
     @State private var newProjectName = ""
     @State private var createdProject: Project? = nil
 
+    @Binding var tabSelection: RootTabView.Tab
+    @Binding var newlyCreatedProjectId: UUID?
+
+    init(tabSelection: Binding<RootTabView.Tab>, newlyCreatedProjectId: Binding<UUID?>) {
+        self._tabSelection = tabSelection
+        self._newlyCreatedProjectId = newlyCreatedProjectId
+    }
+
     var body: some View {
         ZStack {
             if let project = createdProject {
                 ProjectWindowView(project: project)
             } else {
-                // Show a placeholder or branding while waiting for project naming
                 VStack {
                     Image(systemName: "house")
                         .imageScale(.large)
                         .foregroundColor(.accentColor)
                         .padding(.bottom, 8)
-
                     Text("RoomPlan 2D")
                         .font(.title)
                         .fontWeight(.bold)
@@ -36,18 +42,18 @@ struct NewProjectView: View {
             }
         }
         .sheet(isPresented: $showingNamingSheet, onDismiss: {
-            // If the sheet is dismissed without a name, navigate back
             if createdProject == nil {
                 // Optionally pop/dismiss view here if part of navigation stack
             }
         }) {
             ProjectNamingView { name in
-                // Create and select the new project
                 projectController.addProject(name: name)
                 if let project = projectController.projects.last {
                     createdProject = project
+                    newlyCreatedProjectId = project.id // <-- Ici, stockage de l'id
                 }
                 showingNamingSheet = false
+                tabSelection = .explore // <-- Retour à Explorer
             }
         }
     }
@@ -56,7 +62,7 @@ struct NewProjectView: View {
 struct NewProjectView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            NewProjectView()
+            NewProjectView(tabSelection: .constant(.new), newlyCreatedProjectId: .constant(nil))
         }
     }
 }

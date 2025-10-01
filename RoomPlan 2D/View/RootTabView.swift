@@ -14,6 +14,8 @@ struct RootTabView: View {
     @State private var showsSearch: Bool = false
     @FocusState private var searchFocused: Bool
 
+    @State private var newlyCreatedProjectId: UUID? = nil
+
     enum Tab: Hashable {
         case explore
         case new
@@ -42,7 +44,6 @@ struct RootTabView: View {
     }
 
     var body: some View {
-        // iOS / iPadOS: TabView avec barres translucides
         TabView(selection: $selection) {
             exploreContainer
                 .tabItem {
@@ -81,10 +82,9 @@ struct RootTabView: View {
         Group {
             switch sidebarSelection {
             case .projects, .none:
-                ExploreProjectsView()
+                ExploreProjectsView(newlyCreatedProjectId: $newlyCreatedProjectId)
             case .favorites:
-                // For now, same view; you can change filtering logic to favorites later.
-                ExploreProjectsView()
+                ExploreProjectsView(newlyCreatedProjectId: $newlyCreatedProjectId)
             }
         }
         .toolbar {
@@ -114,7 +114,6 @@ struct RootTabView: View {
                             .toolbar {
                                 ToolbarItemGroup(placement: .primaryAction) {
                                     Button {
-                                        // Trigger search presentation
                                         toggleSearch()
                                     } label: {
                                         Image(systemName: "magnifyingglass")
@@ -129,7 +128,6 @@ struct RootTabView: View {
                             .toolbar {
                                 ToolbarItemGroup(placement: .primaryAction) {
                                     Button {
-                                        // Trigger search presentation
                                         toggleSearch()
                                     } label: {
                                         Image(systemName: "magnifyingglass")
@@ -149,14 +147,13 @@ struct RootTabView: View {
                 .navigationSplitViewStyle(.balanced)
             } else {
                 NavigationStack {
-                    ExploreProjectsView()
+                    ExploreProjectsView(newlyCreatedProjectId: $newlyCreatedProjectId)
                         .navigationTitle("Explorer les projets")
                         .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
                         .toolbarBackground(.visible, for: .navigationBar)
                         .toolbar {
                             ToolbarItemGroup(placement: .topBarTrailing) {
                                 Button {
-                                    // Trigger search presentation
                                     toggleSearch()
                                 } label: {
                                     Image(systemName: "magnifyingglass")
@@ -169,12 +166,12 @@ struct RootTabView: View {
         }
     }
 
-    // MARK: - New Project (NavigationStack everywhere on iOS; macOS handled above)
+    // MARK: - New Project
 
     #if !os(macOS)
     private var newContainer: some View {
         NavigationStack {
-            NewProjectView()
+            NewProjectView(tabSelection: $selection, newlyCreatedProjectId: $newlyCreatedProjectId)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color("BackgroundColor").ignoresSafeArea())
                 .navigationTitle("Nouveau projet")
@@ -210,12 +207,10 @@ struct RootTabView: View {
         #if os(macOS)
         false
         #else
-        // iPad split view; iPhone fallback
         return UIDevice.current.userInterfaceIdiom == .pad
         #endif
     }
 
-    // Filter logic for projects by name; you can expand to include rooms, dates, etc.
     private var filteredProjects: [Project] {
         let all = ProjectController.shared.projects
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -229,7 +224,6 @@ struct RootTabView: View {
         withAnimation(.snappy) {
             showsSearch.toggle()
         }
-        // Focus the search field when presented
         if showsSearch {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 searchFocused = true
@@ -270,7 +264,6 @@ private struct SearchPresentationModifier: ViewModifier {
                 }
             }
         } else {
-            // iOS 16 fallback: only apply when visible
             Group {
                 if showsSearch {
                     content
