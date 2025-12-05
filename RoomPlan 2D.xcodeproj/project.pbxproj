@@ -7,11 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0003D5092EE3057300F6A6AA /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0003D5082EE3057300F6A6AA /* ToastView.swift */; };
 		003713772E7AF3AC00153E96 /* USDZQuickLookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003713762E7AF3AC00153E96 /* USDZQuickLookView.swift */; };
 		008BA7D22E7AF8B800956D2D /* FloorPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D12E7AF8B800956D2D /* FloorPlanView.swift */; };
 		008BA7D62E7AF90E00956D2D /* USDZQuickLookSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D52E7AF90E00956D2D /* USDZQuickLookSheet.swift */; };
 		008BA7D82E7AFD5800956D2D /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D72E7AFD5800956D2D /* RootTabView.swift */; };
 		008BA7DA2E7AFD7000956D2D /* ExploreProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */; };
+		00D4B6932EE2F5CC00125751 /* MultiRoomCaptureModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D4B6902EE2F5CC00125751 /* MultiRoomCaptureModel.swift */; };
+		00D4B6942EE2F5CC00125751 /* MultiRoomCaptureRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D4B6912EE2F5CC00125751 /* MultiRoomCaptureRepresentable.swift */; };
+		00D4B6952EE2F5CC00125751 /* MultiRoomCaptureScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D4B6922EE2F5CC00125751 /* MultiRoomCaptureScanView.swift */; };
 		00F2EF3B2E7C255000B96DC9 /* Scanning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF3A2E7C255000B96DC9 /* Scanning.swift */; };
 		00F2EF3D2E7C256100B96DC9 /* RoomImporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF3C2E7C256100B96DC9 /* RoomImporting.swift */; };
 		00F2EF442E7C275A00B96DC9 /* WelcomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F2EF432E7C275A00B96DC9 /* WelcomeController.swift */; };
@@ -36,12 +40,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0003D5082EE3057300F6A6AA /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		0037136D2E7ADE9700153E96 /* RoomPlan 2D.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "RoomPlan 2D.entitlements"; sourceTree = "<group>"; };
 		003713762E7AF3AC00153E96 /* USDZQuickLookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USDZQuickLookView.swift; sourceTree = "<group>"; };
 		008BA7D12E7AF8B800956D2D /* FloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorPlanView.swift; sourceTree = "<group>"; };
 		008BA7D52E7AF90E00956D2D /* USDZQuickLookSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USDZQuickLookSheet.swift; sourceTree = "<group>"; };
 		008BA7D72E7AFD5800956D2D /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		008BA7D92E7AFD7000956D2D /* ExploreProjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreProjectsView.swift; sourceTree = "<group>"; };
+		00D4B6902EE2F5CC00125751 /* MultiRoomCaptureModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiRoomCaptureModel.swift; sourceTree = "<group>"; };
+		00D4B6912EE2F5CC00125751 /* MultiRoomCaptureRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiRoomCaptureRepresentable.swift; sourceTree = "<group>"; };
+		00D4B6922EE2F5CC00125751 /* MultiRoomCaptureScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiRoomCaptureScanView.swift; sourceTree = "<group>"; };
 		00F2EF3A2E7C255000B96DC9 /* Scanning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scanning.swift; sourceTree = "<group>"; };
 		00F2EF3C2E7C256100B96DC9 /* RoomImporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomImporting.swift; sourceTree = "<group>"; };
 		00F2EF432E7C275A00B96DC9 /* WelcomeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeController.swift; sourceTree = "<group>"; };
@@ -92,6 +100,7 @@
 		00F2EF452E7C278700B96DC9 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				0003D5082EE3057300F6A6AA /* ToastView.swift */,
 				00F2EF542E7C3B3D00B96DC9 /* ProjectNamingView.swift */,
 				00F2EF522E7C378A00B96DC9 /* SettingsView.swift */,
 				00F2EF502E7C2C8100B96DC9 /* ProjectWindowView.swift */,
@@ -166,6 +175,9 @@
 			children = (
 				95360D0D29A8E14500BDBED0 /* RoomCaptureModel.swift */,
 				95360D0F29A8E59600BDBED0 /* RoomCaptureRepresentable.swift */,
+				00D4B6902EE2F5CC00125751 /* MultiRoomCaptureModel.swift */,
+				00D4B6912EE2F5CC00125751 /* MultiRoomCaptureRepresentable.swift */,
+				00D4B6922EE2F5CC00125751 /* MultiRoomCaptureScanView.swift */,
 				95360D1129A8E5DB00BDBED0 /* RoomCaptureScanView.swift */,
 			);
 			path = "Room Capture";
@@ -256,6 +268,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				953FDAE429BAA1D900A7AACF /* simd_float4x4+EulerAnglesAndPosition.swift in Sources */,
+				00D4B6932EE2F5CC00125751 /* MultiRoomCaptureModel.swift in Sources */,
+				00D4B6942EE2F5CC00125751 /* MultiRoomCaptureRepresentable.swift in Sources */,
+				00D4B6952EE2F5CC00125751 /* MultiRoomCaptureScanView.swift in Sources */,
 				00F2EF532E7C378A00B96DC9 /* SettingsView.swift in Sources */,
 				008BA7D82E7AFD5800956D2D /* RootTabView.swift in Sources */,
 				00F2EF4F2E7C2C4400B96DC9 /* ProjectController.swift in Sources */,
@@ -268,6 +283,7 @@
 				95360D0229A8DC8700BDBED0 /* NewProjectView.swift in Sources */,
 				953FDAE229BAA0BD00A7AACF /* FloorPlanScene.swift in Sources */,
 				953FDAE629BB8F3E00A7AACF /* CGPoint+RotateAround.swift in Sources */,
+				0003D5092EE3057300F6A6AA /* ToastView.swift in Sources */,
 				95360D1029A8E59600BDBED0 /* RoomCaptureRepresentable.swift in Sources */,
 				00F2EF552E7C3B3D00B96DC9 /* ProjectNamingView.swift in Sources */,
 				008BA7DA2E7AFD7000956D2D /* ExploreProjectsView.swift in Sources */,
@@ -335,7 +351,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -389,7 +405,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

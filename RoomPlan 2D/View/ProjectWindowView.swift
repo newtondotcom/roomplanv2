@@ -19,6 +19,7 @@ struct ProjectWindowView: View {
     @State private var capturedRoom: CapturedRoom?
     @State private var rooms: [ProjectRoom]
     @State private var isShowingScanView = false
+    @State private var isShowingMultiRoomScanView = false
     @State private var roomToDelete: ProjectRoom?
     @State private var isShowingDeleteConfirmation = false
     @State private var isMerging = false
@@ -121,16 +122,27 @@ struct ProjectWindowView: View {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     // Scan new room button
                     if project.isScannedByApp {
-                        Button {
-                            isShowingScanView = true
+                        Menu {
+                            Button {
+                                isShowingScanView = true
+                            } label: {
+                                Label("Scanner une pièce", systemImage: "camera.fill")
+                            }
+                            Button {
+                                isShowingMultiRoomScanView = true
+                            } label: {
+                                Label("Scanner plusieurs pièces", systemImage: "square.grid.2x2")
+                            }
                         } label: {
-                            Label("Scanner une pièce", systemImage: "camera.fill")
+                            Label("Scanner", systemImage: "camera.fill")
                         }
                     }
                     // Merge button: only if scanned and more than one *unmerged* room
                     if project.isScannedByApp && unmergedRoomsCount > 1 {
                         Button {
-                            mergeError = "La fusion des pièces n'est pas encore supportée dans cette version."
+                            Task {
+                                await mergeRooms()
+                            }
                         } label: {
                             Label("Fusionner les pièces", systemImage: "square.stack.3d.down.right")
                         }
@@ -281,6 +293,12 @@ struct ProjectWindowView: View {
                     isShowingScanView = false
                 }
             }
+            .fullScreenCover(isPresented: $isShowingMultiRoomScanView) {
+                MultiRoomCaptureScanView(projectId: project.id) { capturedRooms, roomNames in
+                    addMultipleScannedRooms(capturedRooms, names: roomNames)
+                    isShowingMultiRoomScanView = false
+                }
+            }
             .overlay {
                 if isMerging {
                     ZStack {
@@ -308,6 +326,101 @@ struct ProjectWindowView: View {
         return nil
     }
 
+    // MARK: - Add multiple scanned rooms
+    private func addMultipleScannedRooms(_ capturedRooms: [CapturedRoom], names: [String]) {
+        // Safety check: ensure we have names for all rooms
+        guard !capturedRooms.isEmpty else {
+            mergeError = "Aucune pièce à ajouter."
+            return
+        }
+        
+        // Ensure names array matches rooms count
+        var finalNames = names
+        while finalNames.count < capturedRooms.count {
+            let index = finalNames.count
+            finalNames.append("Pièce \(index + 1)")
+        }
+        
+        // Trim if too many names (shouldn't happen, but safety check)
+        if finalNames.count > capturedRooms.count {
+            finalNames = Array(finalNames.prefix(capturedRooms.count))
+        }
+        
+        guard capturedRooms.count == finalNames.count else {
+            mergeError = "Erreur: Le nombre de pièces (\(capturedRooms.count)) et de noms (\(finalNames.count)) ne correspond pas."
+            return
+        }
+        
+        let fm = FileManager.default
+        let appSupport = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let baseDir = (appSupport ?? fm.urls(for: .documentDirectory, in: .userDomainMask).first!)
+            .appendingPathComponent("RoomPlan2D", isDirectory: true)
+        let projectDir = baseDir.appendingPathComponent(project.id.uuidString, isDirectory: true)
+        
+        if !fm.fileExists(atPath: projectDir.path) {
+            try? fm.createDirectory(at: projectDir, withIntermediateDirectories: true)
+        }
+        
+        var newRooms: [ProjectRoom] = []
+        var errors: [String] = []
+        
+        for (index, capturedRoom) in capturedRooms.enumerated() {
+            let roomName = finalNames[index]
+            
+            // Generate filename based on room name
+            let sanitizedName = roomName
+                .replacingOccurrences(of: " ", with: "_")
+                .replacingOccurrences(of: ",", with: "")
+                .replacingOccurrences(of: ":", with: "-")
+                .replacingOccurrences(of: "/", with: "-")
+            let timestamp = Date().formatted(date: .abbreviated, time: .shortened)
+                .replacingOccurrences(of: " ", with: "_")
+                .replacingOccurrences(of: ",", with: "")
+                .replacingOccurrences(of: ":", with: "-")
+            let fileName = "\(sanitizedName)_\(timestamp)_\(index).json"
+            let jsonURL = projectDir.appendingPathComponent(fileName)
+            
+            // Encode and save JSON
+            do {
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = .prettyPrinted
+                let jsonData = try encoder.encode(capturedRoom)
+                try jsonData.write(to: jsonURL, options: [.atomic])
+                
+                // Create ProjectRoom
+                let newRoom = ProjectRoom(
+                    name: roomName,
+                    fileURLJSON: jsonURL,
+                    fileURLUSDZ: nil,
+                    data: jsonData
+                )
+                newRooms.append(newRoom)
+            } catch {
+                // Collect error but continue processing other rooms
+                errors.append("\(roomName): \(error.localizedDescription)")
+            }
+        }
+        
+        // Add all successfully saved rooms to project
+        if !newRooms.isEmpty {
+            rooms.append(contentsOf: newRooms)
+            var updatedProject = project
+            updatedProject.rooms = rooms
+            ProjectController.shared.updateProject(updatedProject)
+        }
+        
+        // Show error message if there were any failures, but don't prevent adding successful rooms
+        if !errors.isEmpty {
+            if newRooms.isEmpty {
+                // All rooms failed
+                mergeError = "Erreur lors de la sauvegarde des pièces :\n" + errors.joined(separator: "\n")
+            } else {
+                // Some rooms succeeded, some failed
+                mergeError = "\(newRooms.count) pièce(s) ajoutée(s) avec succès. Erreurs :\n" + errors.joined(separator: "\n")
+            }
+        }
+    }
+    
     // MARK: - Add scanned room
     private func addScannedRoom(_ capturedRoom: CapturedRoom, name: String) {
         // Create directory for project rooms if needed
@@ -356,6 +469,100 @@ struct ProjectWindowView: View {
             ProjectController.shared.updateProject(updatedProject)
         } catch {
             mergeError = "Erreur lors de la sauvegarde de la pièce scannée : \(error.localizedDescription)"
+        }
+    }
+    
+    // MARK: - Merge rooms
+    @MainActor
+    private func mergeRooms() async {
+        // Get all unmerged rooms with JSON files
+        let unmergedRooms = rooms.filter { !$0.merged && $0.fileURLJSON != nil }
+        
+        guard unmergedRooms.count >= 2 else {
+            mergeError = "Au moins 2 pièces non fusionnées sont nécessaires pour la fusion."
+            return
+        }
+        
+        isMerging = true
+        mergeError = nil
+        
+        do {
+            // Load all CapturedRoom objects from JSON files
+            var capturedRooms: [CapturedRoom] = []
+            for room in unmergedRooms {
+                guard let jsonURL = room.fileURLJSON else { continue }
+                let data = try Data(contentsOf: jsonURL)
+                let capturedRoom = try JSONDecoder().decode(CapturedRoom.self, from: data)
+                capturedRooms.append(capturedRoom)
+            }
+            
+            guard capturedRooms.count >= 2 else {
+                mergeError = "Impossible de charger les données des pièces à fusionner."
+                isMerging = false
+                return
+            }
+            
+            // Create StructureBuilder and merge rooms
+            // StructureBuilder is available in iOS 17+
+            let structureBuilder = StructureBuilder(options: [.beautifyObjects])
+            let capturedStructure = try await structureBuilder.capturedStructure(from: capturedRooms)
+            
+            // Save the merged structure
+            let fm = FileManager.default
+            let appSupport = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            let baseDir = (appSupport ?? fm.urls(for: .documentDirectory, in: .userDomainMask).first!)
+                .appendingPathComponent("RoomPlan2D", isDirectory: true)
+            let projectDir = baseDir.appendingPathComponent(project.id.uuidString, isDirectory: true)
+            
+            if !fm.fileExists(atPath: projectDir.path) {
+                try? fm.createDirectory(at: projectDir, withIntermediateDirectories: true)
+            }
+            
+            // Export to USDZ
+            let timestamp = Date().formatted(date: .abbreviated, time: .shortened)
+                .replacingOccurrences(of: " ", with: "_")
+                .replacingOccurrences(of: ",", with: "")
+                .replacingOccurrences(of: ":", with: "-")
+            let usdzFileName = "Merged_\(timestamp).usdz"
+            let usdzURL = projectDir.appendingPathComponent(usdzFileName)
+            
+            try capturedStructure.export(to: usdzURL)
+            
+            // Convert CapturedStructure back to CapturedRoom for JSON storage
+            // Note: We'll store the structure data, but for compatibility we create a merged room entry
+            let mergedRoomName = "Pièces fusionnées (\(unmergedRooms.count))"
+            
+            // Create a merged ProjectRoom
+            let mergedRoom = ProjectRoom(
+                name: mergedRoomName,
+                fileURLJSON: nil, // Merged structures don't have JSON representation
+                fileURLUSDZ: usdzURL,
+                data: nil,
+                merged: true
+            )
+            
+            // Mark original rooms as merged
+            var updatedRooms = rooms
+            let unmergedRoomIds = Set(unmergedRooms.map { $0.id })
+            for i in 0..<updatedRooms.count {
+                if unmergedRoomIds.contains(updatedRooms[i].id) {
+                    updatedRooms[i].merged = true
+                }
+            }
+            
+            // Add the merged room
+            updatedRooms.append(mergedRoom)
+            
+            // Update project
+            rooms = updatedRooms
+            var updatedProject = project
+            updatedProject.rooms = rooms
+            ProjectController.shared.updateProject(updatedProject)
+            
+            isMerging = false
+        } catch {
+            isMerging = false
+            mergeError = "Erreur lors de la fusion des pièces : \(error.localizedDescription)"
         }
     }
     
