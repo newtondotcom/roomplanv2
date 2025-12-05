@@ -46,15 +46,6 @@ struct USDZQuickLookSheet: View {
                                 .symbolRenderingMode(.palette)
                                 .foregroundStyle(.white, .black.opacity(0.6))
                         }
-                        Button {
-                            dismiss()
-                            onProceed?()
-                        } label: {
-                            Image(systemName: "chevron.right.circle.fill")
-                                .font(.title)
-                                .symbolRenderingMode(.palette)
-                                .foregroundStyle(.white, .black.opacity(0.6))
-                        }
                     }
                 }
                 Spacer()

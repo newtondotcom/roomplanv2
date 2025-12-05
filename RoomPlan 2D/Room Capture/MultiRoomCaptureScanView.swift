@@ -44,8 +44,8 @@ struct MultiRoomCaptureScanView: View {
                 Spacer()
                 
                 if showNamingInput {
-                    // Naming input overlay
-                    VStack(spacing: 20) {
+                    // Show naming input only (no 3D preview)
+                    VStack(spacing: 16) {
                         Text("Nommer la pièce \(currentRoomIndex + 1)")
                             .font(.headline)
                             .foregroundColor(.white)
@@ -65,7 +65,7 @@ struct MultiRoomCaptureScanView: View {
                             }
                             .foregroundColor(.white)
                             
-                            Button("Enregistrer") {
+                            Button("Suivant") {
                                 saveCurrentRoom()
                             }
                             .padding(.horizontal, 24)
@@ -75,16 +75,6 @@ struct MultiRoomCaptureScanView: View {
                             .clipShape(Capsule())
                             .fontWeight(.bold)
                             .disabled(currentRoomName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            
-                            Button("Terminer le scan") {
-                                finishScan()
-                            }
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .clipShape(Capsule())
-                            .fontWeight(.bold)
                         }
                     }
                     .padding()
@@ -136,25 +126,16 @@ struct MultiRoomCaptureScanView: View {
                                 .foregroundColor(.white)
                                 .clipShape(Capsule())
                                 .fontWeight(.bold)
-                            }
-                        }
-                        
-                        if model.capturedRooms.count > 0 {
-                            Button("Terminer le scan") {
-                                Task { @MainActor in
-                                    if model.isScanning {
-                                        model.stopCurrentRoomScan()
-                                        await waitForRoomData()
-                                        await processRoomData()
-                                    }
+                                Button("Terminer le scan") {
                                     finishScan()
                                 }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .clipShape(Capsule())
+                                .fontWeight(.bold)
                             }
-                            .padding()
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .clipShape(Capsule())
-                            .fontWeight(.bold)
                         }
                     }
                     .padding(.bottom)
@@ -313,14 +294,14 @@ struct MultiRoomCaptureScanView: View {
             roomNames.append(trimmedName)
         }
         
-        // Hide naming input
+        // Hide naming input, return to scanning controls
+        // User must explicitly choose to scan next room or finish scan
         withAnimation {
             showNamingInput = false
         }
         currentRoomName = ""
         
-        // Continue scanning for the next room automatically
-        continueToNextRoom()
+        toastMessage = "Pièce \"\(trimmedName)\" enregistrée"
     }
     
     private func finishScan() {
