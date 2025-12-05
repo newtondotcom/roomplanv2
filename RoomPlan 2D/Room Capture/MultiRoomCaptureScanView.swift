@@ -23,22 +23,68 @@ struct MultiRoomCaptureScanView: View {
     
     var body: some View {
         ZStack {
-            MultiRoomCaptureRepresentable()
+            // Show AR view only when scanning, otherwise show gradient background
+            if model.isScanning {
+                MultiRoomCaptureRepresentable()
+                    .ignoresSafeArea()
+            } else {
+                // Gradient background
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.1, green: 0.1, blue: 0.2),
+                        Color(red: 0.2, green: 0.15, blue: 0.3),
+                        Color(red: 0.15, green: 0.2, blue: 0.25)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
                 .ignoresSafeArea()
+            }
             
             VStack {
-                // Header with room count
-                VStack(spacing: 8) {
-                    Text("Scan multi-pièces")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Text("\(model.capturedRooms.count) pièce(s) scannée(s)")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
+                // Back button and header
+                HStack {
+                    // Back button - only show when not scanning and no rooms scanned yet
+                    if !model.isScanning && model.capturedRooms.isEmpty {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .padding(12)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                        }
+                        .padding(.leading)
+                    } else {
+                        Spacer()
+                            .frame(width: 44)
+                            .padding(.leading)
+                    }
+                    
+                    Spacer()
+                    
+                    // Header with room count
+                    VStack(spacing: 8) {
+                        Text("Scan multi-pièces")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text("\(model.capturedRooms.count) pièce(s) scannée(s)")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    
+                    Spacer()
+                    
+                    // Balance spacer
+                    Spacer()
+                        .frame(width: 44)
+                        .padding(.trailing)
                 }
-                .padding()
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.top)
                 
                 Spacer()
