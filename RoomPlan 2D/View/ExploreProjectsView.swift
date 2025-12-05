@@ -17,6 +17,7 @@ struct ExploreProjectsView: View {
     @State private var sortOption: SortOption = .dateDesc
     @State private var selection: UUID? = nil // Pour NavigationLink
     @State private var showSettings = false
+    @State private var showNewProjectSheet = false
 
     private enum SortOption: String, CaseIterable {
         case dateAsc
@@ -116,6 +117,14 @@ struct ExploreProjectsView: View {
                         .font(.title3)
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showNewProjectSheet = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.title3)
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
@@ -146,6 +155,15 @@ struct ExploreProjectsView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $showNewProjectSheet) {
+            ProjectNamingView { name in
+                controller.addProject(name: name)
+                if let project = controller.projects.last {
+                    newlyCreatedProjectId = project.id
+                }
+                showNewProjectSheet = false
+            }
         }
         .refreshable {
             ProjectController.shared.reload()
