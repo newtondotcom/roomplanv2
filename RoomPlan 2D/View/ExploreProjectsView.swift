@@ -16,6 +16,7 @@ struct ExploreProjectsView: View {
 
     @State private var sortOption: SortOption = .dateDesc
     @State private var selection: UUID? = nil // Pour NavigationLink
+    @State private var showSettings = false
 
     private enum SortOption: String, CaseIterable {
         case dateAsc
@@ -107,6 +108,14 @@ struct ExploreProjectsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("BackgroundColor").ignoresSafeArea())
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
@@ -134,6 +143,9 @@ struct ExploreProjectsView: View {
                     Label("Filtrer", systemImage: "line.3.horizontal.decrease.circle")
                 }
             }
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
         .refreshable {
             ProjectController.shared.reload()
