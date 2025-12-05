@@ -203,7 +203,7 @@ struct ProjectWindowView: View {
                     FloorPlanView(capturedRoom: room)
                 }
             }
-            .confirmationDialog("Supprimer la pièce ?", isPresented: $isShowingDeleteConfirmation, titleVisibility: .visible) {
+            .alert("Supprimer la pièce ?", isPresented: $isShowingDeleteConfirmation, actions: {
                 Button("Supprimer", role: .destructive) {
                     if let toDelete = roomToDelete, let idx = rooms.firstIndex(of: toDelete) {
                         rooms.remove(at: idx)
@@ -217,11 +217,11 @@ struct ProjectWindowView: View {
                 Button("Annuler", role: .cancel) {
                     roomToDelete = nil
                 }
-            } message: {
+            }, message: {
                 if let room = roomToDelete {
                     Text("Êtes-vous sûr de vouloir supprimer la pièce « \(room.name) » ?")
                 }
-            }
+            })
             .alert("Renommer la pièce", isPresented: $isShowingRenameAlert, actions: {
                 TextField("Nom de la pièce", text: $newRoomName)
                 Button("Enregistrer") {
@@ -259,7 +259,7 @@ struct ProjectWindowView: View {
             }, message: {
                 Text("Entrer le nouveau nom du projet.")
             })
-            .confirmationDialog("Supprimer le projet ?", isPresented: $isShowingProjectDeleteConfirmation, titleVisibility: .visible) {
+            .alert("Supprimer le projet ?", isPresented: $isShowingProjectDeleteConfirmation, actions: {
                 Button("Supprimer le projet", role: .destructive) {
                     // Suppression du projet via ProjectController
                     if let idx = ProjectController.shared.projects.firstIndex(where: { $0.id == project.id }) {
@@ -269,9 +269,9 @@ struct ProjectWindowView: View {
                     dismiss()
                 }
                 Button("Annuler", role: .cancel) {}
-            } message: {
+            }, message: {
                 Text("Êtes-vous sûr de vouloir supprimer le projet « \(project.name) » ? Cette action est irréversible.")
-            }
+            })
             .alert("Erreur", isPresented: .constant(mergeError != nil), actions: {
                 Button("OK", role: .cancel) { mergeError = nil }
             }, message: {
