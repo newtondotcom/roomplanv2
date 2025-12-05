@@ -14,11 +14,9 @@ struct NewProjectView: View {
     @State private var newProjectName = ""
     @State private var createdProject: Project? = nil
 
-    @Binding var tabSelection: RootTabView.Tab
     @Binding var newlyCreatedProjectId: UUID?
 
-    init(tabSelection: Binding<RootTabView.Tab>, newlyCreatedProjectId: Binding<UUID?>) {
-        self._tabSelection = tabSelection
+    init(newlyCreatedProjectId: Binding<UUID?>) {
         self._newlyCreatedProjectId = newlyCreatedProjectId
     }
 
@@ -53,7 +51,6 @@ struct NewProjectView: View {
                     newlyCreatedProjectId = project.id // <-- Ici, stockage de l'id
                 }
                 showingNamingSheet = false
-                tabSelection = .explore // <-- Retour à Explorer
             }
         }
     }
@@ -62,7 +59,7 @@ struct NewProjectView: View {
 struct NewProjectView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            NewProjectView(tabSelection: .constant(.new), newlyCreatedProjectId: .constant(nil))
+            NewProjectView(newlyCreatedProjectId: .constant(nil))
         }
     }
 }

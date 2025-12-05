@@ -10,6 +10,7 @@ import RoomPlan
 import UniformTypeIdentifiers
 
 struct ProjectWindowView: View {
+    @ObservedObject private var controller = ProjectController.shared
     let project: Project
 
     @State private var showUSDZSheet = false
@@ -17,6 +18,7 @@ struct ProjectWindowView: View {
     @State private var showFloorPlan = false
     @State private var capturedRoom: CapturedRoom?
     @State private var rooms: [ProjectRoom]
+    @State private var isShowingScanView = false
     @State private var roomToDelete: ProjectRoom?
     @State private var isShowingDeleteConfirmation = false
     @State private var isMerging = false
@@ -110,8 +112,21 @@ struct ProjectWindowView: View {
                 }
             }
             .navigationTitle(project.name)
+            .onChange(of: controller.projects.first(where: { $0.id == project.id })) { updatedProject in
+                if let updated = updatedProject {
+                    rooms = updated.rooms
+                }
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    // Scan new room button
+                    if project.isScannedByApp {
+                        Button {
+                            isShowingScanView = true
+                        } label: {
+                            Label("Scanner une pièce", systemImage: "camera.fill")
+                        }
+                    }
                     // Merge button: only if scanned and more than one *unmerged* room
                     if project.isScannedByApp && unmergedRoomsCount > 1 {
                         Button {
@@ -122,6 +137,7 @@ struct ProjectWindowView: View {
                         .disabled(isMerging)
                     }
                     // Upload JSON Room(s)
+                    /*
                     if project.isScannedByApp {
                         Button {
                             isImportingJSON = true
@@ -129,6 +145,7 @@ struct ProjectWindowView: View {
                             Label("Importer des pièces JSON", systemImage: "square.and.arrow.down")
                         }
                     }
+                    */
                     Menu {
                         if let (_, jsonURL) = firstRoomWithJSON {
                             Button("Floor Plan") {
@@ -258,6 +275,12 @@ struct ProjectWindowView: View {
             }, message: {
                 if let mergeError { Text(mergeError) }
             })
+            .fullScreenCover(isPresented: $isShowingScanView) {
+                RoomCaptureScanViewForProject(projectId: project.id) { capturedRoom, roomName in
+                    addScannedRoom(capturedRoom, name: roomName)
+                    isShowingScanView = false
+                }
+            }
             .overlay {
                 if isMerging {
                     ZStack {
@@ -285,6 +308,57 @@ struct ProjectWindowView: View {
         return nil
     }
 
+    // MARK: - Add scanned room
+    private func addScannedRoom(_ capturedRoom: CapturedRoom, name: String) {
+        // Create directory for project rooms if needed
+        let fm = FileManager.default
+        let appSupport = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let baseDir = (appSupport ?? fm.urls(for: .documentDirectory, in: .userDomainMask).first!)
+            .appendingPathComponent("RoomPlan2D", isDirectory: true)
+        let projectDir = baseDir.appendingPathComponent(project.id.uuidString, isDirectory: true)
+        
+        if !fm.fileExists(atPath: projectDir.path) {
+            try? fm.createDirectory(at: projectDir, withIntermediateDirectories: true)
+        }
+        
+        // Generate filename based on room name
+        let sanitizedName = name
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: ",", with: "")
+            .replacingOccurrences(of: ":", with: "-")
+            .replacingOccurrences(of: "/", with: "-")
+        let timestamp = Date().formatted(date: .abbreviated, time: .shortened)
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: ",", with: "")
+            .replacingOccurrences(of: ":", with: "-")
+        let fileName = "\(sanitizedName)_\(timestamp).json"
+        let jsonURL = projectDir.appendingPathComponent(fileName)
+        
+        // Encode and save JSON
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let jsonData = try encoder.encode(capturedRoom)
+            try jsonData.write(to: jsonURL, options: [.atomic])
+            
+            // Create ProjectRoom with provided name
+            let newRoom = ProjectRoom(
+                name: name,
+                fileURLJSON: jsonURL,
+                fileURLUSDZ: nil,
+                data: jsonData
+            )
+            
+            // Add to project
+            rooms.append(newRoom)
+            var updatedProject = project
+            updatedProject.rooms = rooms
+            ProjectController.shared.updateProject(updatedProject)
+        } catch {
+            mergeError = "Erreur lors de la sauvegarde de la pièce scannée : \(error.localizedDescription)"
+        }
+    }
+    
     // MARK: - Import multiple JSON rooms
     private func importJSONRooms(from urls: [URL]) {
         var newRooms: [ProjectRoom] = []

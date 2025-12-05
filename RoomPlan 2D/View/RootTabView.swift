@@ -8,19 +8,12 @@
 import SwiftUI
 
 struct RootTabView: View {
-    @State private var selection: Tab = .explore
     @State private var sidebarSelection: SidebarItem? = .projects
     @State private var searchText: String = ""
     @State private var showsSearch: Bool = false
     @FocusState private var searchFocused: Bool
 
     @State private var newlyCreatedProjectId: UUID? = nil
-
-    enum Tab: Hashable {
-        case explore
-        case new
-        case settings
-    }
 
     enum SidebarItem: Hashable, Identifiable, CaseIterable {
         case projects
@@ -44,27 +37,7 @@ struct RootTabView: View {
     }
 
     var body: some View {
-        TabView(selection: $selection) {
-            exploreContainer
-                .tabItem {
-                    Label("Explorer", systemImage: "folder")
-                }
-                .tag(Tab.explore)
-
-            newContainer
-                .tabItem {
-                    Label("Nouveau", systemImage: "plus.circle")
-                }
-                .tag(Tab.new)
-
-            settingsContainer
-                .tabItem {
-                    Label("Réglages", systemImage: "gearshape")
-                }
-                .tag(Tab.settings)
-        }
-        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-        .toolbarBackground(.visible, for: .tabBar)
+        exploreContainer
     }
 
     // MARK: - Sidebar (iPadOS)
@@ -166,40 +139,6 @@ struct RootTabView: View {
         }
     }
 
-    // MARK: - New Project
-
-    #if !os(macOS)
-    private var newContainer: some View {
-        NavigationStack {
-            NewProjectView(tabSelection: $selection, newlyCreatedProjectId: $newlyCreatedProjectId)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color("BackgroundColor").ignoresSafeArea())
-                .navigationTitle("Nouveau projet")
-                .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button {
-                            // Placeholder: aide
-                        } label: {
-                            Image(systemName: "questionmark.circle")
-                        }
-                    }
-                }
-        }
-    }
-    #endif
-
-    // MARK: - Settings Tab
-    private var settingsContainer: some View {
-        NavigationStack {
-            SettingsView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .navigationTitle("Réglages")
-                .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
-        }
-    }
 
     // MARK: - Helpers
 
