@@ -49,6 +49,11 @@ struct ProjectWindowView: View {
     private var unmergedRoomsCount: Int {
         rooms.filter { !$0.merged }.count
     }
+    
+    // Computed property: count of unmerged rooms with JSON files
+    private var unmergedRoomsWithJSONCount: Int {
+        rooms.filter { !$0.merged && $0.fileURLJSON != nil }.count
+    }
 
     // Computed property: true if exactly one merged room
     private var hasSingleMergedRoom: Bool {
@@ -127,14 +132,14 @@ struct ProjectWindowView: View {
                             Label("Scanner plusieurs pièces", systemImage: "camera.fill")
                         }
                     }
-                    // Merge button: only if scanned and more than one *unmerged* room
-                    if project.isScannedByApp && unmergedRoomsCount > 1 {
+                    // Merge/Convert button: if scanned and has at least one unmerged room with JSON
+                    if project.isScannedByApp && unmergedRoomsWithJSONCount >= 1 {
                         Button {
                             Task {
                                 await mergeRooms()
                             }
                         } label: {
-                            Label("Fusionner les pièces", systemImage: "square.stack.3d.down.right")
+                            Label(unmergedRoomsCount > 1 ? "Fusionner les pièces" : "Convertir en USDZ", systemImage: "square.stack.3d.down.right")
                         }
                         .disabled(isMerging)
                     }
@@ -405,14 +410,14 @@ struct ProjectWindowView: View {
         }
     }
     
-    // MARK: - Merge rooms
+    // MARK: - Merge rooms or convert single room to USDZ
     @MainActor
     private func mergeRooms() async {
         // Get all unmerged rooms with JSON files
         let unmergedRooms = rooms.filter { !$0.merged && $0.fileURLJSON != nil }
         
-        guard unmergedRooms.count >= 2 else {
-            mergeError = "Au moins 2 pièces non fusionnées sont nécessaires pour la fusion."
+        guard !unmergedRooms.isEmpty else {
+            mergeError = "Aucune pièce avec fichier JSON disponible."
             return
         }
         
@@ -429,18 +434,12 @@ struct ProjectWindowView: View {
                 capturedRooms.append(capturedRoom)
             }
             
-            guard capturedRooms.count >= 2 else {
-                mergeError = "Impossible de charger les données des pièces à fusionner."
+            guard !capturedRooms.isEmpty else {
+                mergeError = "Impossible de charger les données des pièces."
                 isMerging = false
                 return
             }
             
-            // Create StructureBuilder and merge rooms
-            // StructureBuilder is available in iOS 17+
-            let structureBuilder = StructureBuilder(options: [.beautifyObjects])
-            let capturedStructure = try await structureBuilder.capturedStructure(from: capturedRooms)
-            
-            // Save the merged structure
             let fm = FileManager.default
             let appSupport = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             let baseDir = (appSupport ?? fm.urls(for: .documentDirectory, in: .userDomainMask).first!)
@@ -451,51 +450,86 @@ struct ProjectWindowView: View {
                 try? fm.createDirectory(at: projectDir, withIntermediateDirectories: true)
             }
             
-            // Export to USDZ
             let timestamp = Date().formatted(date: .abbreviated, time: .shortened)
                 .replacingOccurrences(of: " ", with: "_")
                 .replacingOccurrences(of: ",", with: "")
                 .replacingOccurrences(of: ":", with: "-")
-            let usdzFileName = "Merged_\(timestamp).usdz"
-            let usdzURL = projectDir.appendingPathComponent(usdzFileName)
             
-            try capturedStructure.export(to: usdzURL)
-            
-            // Convert CapturedStructure back to CapturedRoom for JSON storage
-            // Note: We'll store the structure data, but for compatibility we create a merged room entry
-            let mergedRoomName = "Pièces fusionnées (\(unmergedRooms.count))"
-            
-            // Create a merged ProjectRoom
-            let mergedRoom = ProjectRoom(
-                name: mergedRoomName,
-                fileURLJSON: nil, // Merged structures don't have JSON representation
-                fileURLUSDZ: usdzURL,
-                data: nil,
-                merged: true
-            )
-            
-            // Mark original rooms as merged
-            var updatedRooms = rooms
-            let unmergedRoomIds = Set(unmergedRooms.map { $0.id })
-            for i in 0..<updatedRooms.count {
-                if unmergedRoomIds.contains(updatedRooms[i].id) {
-                    updatedRooms[i].merged = true
+            if capturedRooms.count == 1 {
+                // Single room: just convert JSON to USDZ
+                let capturedRoom = capturedRooms[0]
+                let roomName = unmergedRooms[0].name
+                let sanitizedName = roomName
+                    .replacingOccurrences(of: " ", with: "_")
+                    .replacingOccurrences(of: ",", with: "")
+                    .replacingOccurrences(of: ":", with: "-")
+                    .replacingOccurrences(of: "/", with: "-")
+                let usdzFileName = "\(sanitizedName)_\(timestamp).usdz"
+                let usdzURL = projectDir.appendingPathComponent(usdzFileName)
+                
+                // Export single room to USDZ
+                try capturedRoom.export(to: usdzURL, exportOptions: .parametric)
+                
+                // Update the room to include USDZ URL
+                var updatedRooms = rooms
+                if let index = updatedRooms.firstIndex(where: { $0.id == unmergedRooms[0].id }) {
+                    updatedRooms[index].fileURLUSDZ = usdzURL
                 }
+                
+                // Update project
+                rooms = updatedRooms
+                var updatedProject = project
+                updatedProject.rooms = rooms
+                ProjectController.shared.updateProject(updatedProject)
+            } else {
+                // Multiple rooms: merge them
+                // Create StructureBuilder and merge rooms
+                // StructureBuilder is available in iOS 17+
+                let structureBuilder = StructureBuilder(options: [.beautifyObjects])
+                let capturedStructure = try await structureBuilder.capturedStructure(from: capturedRooms)
+                
+                // Export to USDZ
+                let usdzFileName = "Merged_\(timestamp).usdz"
+                let usdzURL = projectDir.appendingPathComponent(usdzFileName)
+                
+                try capturedStructure.export(to: usdzURL)
+                
+                // Convert CapturedStructure back to CapturedRoom for JSON storage
+                // Note: We'll store the structure data, but for compatibility we create a merged room entry
+                let mergedRoomName = "Pièces fusionnées (\(unmergedRooms.count))"
+                
+                // Create a merged ProjectRoom
+                let mergedRoom = ProjectRoom(
+                    name: mergedRoomName,
+                    fileURLJSON: nil, // Merged structures don't have JSON representation
+                    fileURLUSDZ: usdzURL,
+                    data: nil,
+                    merged: true
+                )
+                
+                // Mark original rooms as merged
+                var updatedRooms = rooms
+                let unmergedRoomIds = Set(unmergedRooms.map { $0.id })
+                for i in 0..<updatedRooms.count {
+                    if unmergedRoomIds.contains(updatedRooms[i].id) {
+                        updatedRooms[i].merged = true
+                    }
+                }
+                
+                // Add the merged room
+                updatedRooms.append(mergedRoom)
+                
+                // Update project
+                rooms = updatedRooms
+                var updatedProject = project
+                updatedProject.rooms = rooms
+                ProjectController.shared.updateProject(updatedProject)
             }
-            
-            // Add the merged room
-            updatedRooms.append(mergedRoom)
-            
-            // Update project
-            rooms = updatedRooms
-            var updatedProject = project
-            updatedProject.rooms = rooms
-            ProjectController.shared.updateProject(updatedProject)
             
             isMerging = false
         } catch {
             isMerging = false
-            mergeError = "Erreur lors de la fusion des pièces : \(error.localizedDescription)"
+            mergeError = "Erreur lors de la conversion : \(error.localizedDescription)"
         }
     }
     
